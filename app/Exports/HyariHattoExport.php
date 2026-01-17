@@ -15,9 +15,13 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 
-class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
+class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithDrawings
 {
     protected $search;
+    protected $rows; // Cache to hold data for drawings
 
     public function __construct($search = null)
     {
@@ -36,16 +40,17 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('deskripsi', 'like', '%' . $this->search . '%')
-                  ->orWhereHas('ptas', function ($q2) {
-                      $q2->where('nama_pta', 'like', '%' . $this->search . '%');
-                  })
-                  ->orWhereHas('ktas', function ($q2) {
-                      $q2->where('nama_kta', 'like', '%' . $this->search . '%');
-                  });
+                    ->orWhereHas('ptas', function ($q2) {
+                        $q2->where('nama_pta', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('ktas', function ($q2) {
+                        $q2->where('nama_kta', 'like', '%' . $this->search . '%');
+                    });
             });
         }
 
-        return $query->get();
+        $this->rows = $query->get();
+        return $this->rows;
     }
 
     /**
@@ -59,14 +64,15 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
             'SECTION',
             'PELAPOR',
             'PERILAKU TIDAK AMAN (PTA)',
-            'KONDISI TIDAK AMAN (KTA)', 
+            'KONDISI TIDAK AMAN (KTA)',
             'POTENSI BAHAYA (PB)',
             'DESKRIPSI KEJADIAN',
             'USULAN COUNTERMEASURE',
             'REKOMENDASI P2K3',
             'LOKASI',
             'TANGGAL DIBUAT',
-            'TERAKHIR DIPERBARUI'
+            'TERAKHIR DIPERBARUI',
+            'BUKTI VISUAL'
         ];
     }
 
@@ -79,7 +85,7 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
         $ptas = $laporan->ptas ? $laporan->ptas->pluck('nama_pta')->toArray() : [];
         $ktas = $laporan->ktas ? $laporan->ktas->pluck('nama_kta')->toArray() : [];
         $pbs = $laporan->pbs ? $laporan->pbs->pluck('nama_pb')->toArray() : [];
-        
+
         return [
             $laporan->id,
             $laporan->created_at ? $laporan->created_at->format('d/m/Y') : '',
@@ -94,6 +100,7 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
             $laporan->lokasi ?? '-',
             $laporan->created_at ? $laporan->created_at->format('d/m/Y H:i') : '',
             $laporan->updated_at ? $laporan->updated_at->format('d/m/Y H:i') : '',
+            '', // Placeholder for Image (Column N)
         ];
     }
 
@@ -103,20 +110,20 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
     private function formatList(array $items): string
     {
         // Filter empty items
-        $items = array_filter($items, function($item) {
+        $items = array_filter($items, function ($item) {
             return !empty($item) && trim($item) !== '';
         });
-        
+
         if (empty($items)) {
             return '-';
         }
-        
+
         $formatted = '';
         foreach ($items as $index => $item) {
             $number = $index + 1;
             $formatted .= "{$number}. " . $this->cleanText($item) . "\n";
         }
-        
+
         return rtrim($formatted);
     }
 
@@ -137,9 +144,9 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
         try {
             // Get highest row
             $highestRow = $sheet->getHighestRow();
-            
+
             // Apply header style
-            $sheet->getStyle('A1:M1')->applyFromArray([
+            $sheet->getStyle('A1:N1')->applyFromArray([
                 'font' => [
                     'bold' => true,
                     'color' => ['argb' => 'FFFFFFFF'],
@@ -160,15 +167,15 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
                     ],
                 ],
             ]);
-            
+
             $sheet->getRowDimension(1)->setRowHeight(30);
-            
+
             // Only apply data styles if there is data
             if ($highestRow > 1) {
                 // Set wrap text for list columns
                 $sheet->getStyle('E2:G' . $highestRow)->getAlignment()->setWrapText(true);
                 $sheet->getStyle('H2:J' . $highestRow)->getAlignment()->setWrapText(true);
-                
+
                 // Apply borders to all data cells
                 $borderStyle = [
                     'borders' => [
@@ -178,41 +185,41 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
                         ],
                     ],
                 ];
-                
-                $sheet->getStyle('A2:M' . $highestRow)->applyFromArray($borderStyle);
-                
+
+                $sheet->getStyle('A2:N' . $highestRow)->applyFromArray($borderStyle);
+
                 // Alternate row colors
                 for ($row = 2; $row <= $highestRow; $row++) {
                     $color = $row % 2 == 0 ? 'FFF8F9FA' : 'FFFFFFFF';
-                    
-                    $sheet->getStyle("A{$row}:M{$row}")->getFill()
+
+                    $sheet->getStyle("A{$row}:N{$row}")->getFill()
                         ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setARGB($color);
-                    
+
                     // Set alignment
-                    $sheet->getStyle("A{$row}:D{$row},K{$row}:M{$row}")->getAlignment()
+                    $sheet->getStyle("A{$row}:D{$row},K{$row}:N{$row}")->getAlignment()
                         ->setVertical(Alignment::VERTICAL_CENTER)
                         ->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    
+
                     $sheet->getStyle("E{$row}:J{$row}")->getAlignment()
                         ->setVertical(Alignment::VERTICAL_TOP);
-                        
+
                     // Auto adjust row height
                     $this->autoAdjustRowHeight($sheet, $row);
                 }
-                
+
                 // Freeze header row
                 $sheet->freezePane('A2');
             }
-            
+
         } catch (\Exception $e) {
             // Log error but continue
             \Log::error('Excel export styling error: ' . $e->getMessage());
         }
-        
+
         return [];
     }
-    
+
     /**
      * Auto adjust row height
      */
@@ -221,25 +228,25 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
         try {
             $maxLines = 1;
             $columns = ['E', 'F', 'G', 'H', 'I', 'J'];
-            
+
             foreach ($columns as $col) {
                 $cell = $sheet->getCell($col . $row);
                 if ($cell) {
                     $value = $cell->getValue();
                     if ($value) {
-                        $lines = substr_count((string)$value, "\n") + 1;
+                        $lines = substr_count((string) $value, "\n") + 1;
                         $maxLines = max($maxLines, $lines);
                     }
                 }
             }
-            
-            $rowHeight = max(20, $maxLines * 15);
+
+            $rowHeight = max(85, $maxLines * 15);
             $sheet->getRowDimension($row)->setRowHeight($rowHeight);
         } catch (\Exception $e) {
             // Skip if error
         }
     }
-    
+
     /**
      * Set column widths
      */
@@ -259,9 +266,10 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
             'K' => 20,   // LOKASI
             'L' => 20,   // CREATED
             'M' => 20,   // UPDATED
+            'N' => 30,   // BUKTI VISUAL
         ];
     }
-    
+
     /**
      * Format kolom tertentu sebagai text
      */
@@ -276,5 +284,45 @@ class HyariHattoExport implements FromCollection, WithHeadings, WithMapping, Wit
             'I' => NumberFormat::FORMAT_TEXT, // Usulan
             'J' => NumberFormat::FORMAT_TEXT, // Rekomendasi
         ];
+    }
+    public function drawings()
+    {
+        $drawings = [];
+
+        if (!$this->rows) {
+            return $drawings;
+        }
+
+        foreach ($this->rows as $index => $row) {
+            if ($row->bukti) {
+                $imagePath = null;
+                $possiblePaths = [
+                    public_path('storage/' . $row->bukti),
+                    storage_path('app/public/' . $row->bukti),
+                    public_path($row->bukti)
+                ];
+
+                foreach ($possiblePaths as $path) {
+                    if (file_exists($path)) {
+                        $imagePath = $path;
+                        break;
+                    }
+                }
+
+                if ($imagePath) {
+                    $drawing = new Drawing();
+                    $drawing->setName('Bukti');
+                    $drawing->setDescription('Bukti Kejadian');
+                    $drawing->setPath($imagePath);
+                    $drawing->setHeight(80);
+                    $drawing->setCoordinates('N' . ($index + 2));
+                    $drawing->setOffsetX(10);
+                    $drawing->setOffsetY(10);
+                    $drawings[] = $drawing;
+                }
+            }
+        }
+
+        return $drawings;
     }
 }

@@ -167,6 +167,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/pic/komitmenk3/store', [KomitmenK3Controller::class, 'store']);
     Route::get('/pic/komitmenk3/edit/{id}', [KomitmenK3Controller::class, 'edit']);
     Route::put('/pic/komitmenk3/update/{id}', [KomitmenK3Controller::class, 'update']);
+    Route::get('/pic/komitmenk3/export', [KomitmenK3Controller::class, 'export']);
     Route::delete('/pic/komitmenk3/destroy/{id}', [KomitmenK3Controller::class, 'destroy']);
     Route::post('pic/komitmenk3/sync', [KomitmenK3Controller::class, 'syncUsers']);
 
@@ -196,10 +197,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/she/safety-riding/get-users-by-section/{section_id}', [SheSafetyRidingController::class, 'getUsersBySection']);
     Route::delete('/she/safety-riding/{id}/delete-image/{imageIndex}', [SheSafetyRidingController::class, 'deleteImage']);
     Route::put('/she/safety-riding/tindak-lanjut/{id}', [SheSafetyRidingController::class, 'tindakLanjut']);
+    Route::get('/she/safety-riding/export', [SheSafetyRidingController::class, 'export']);
 
     Route::get('/pic/safety-riding', [PicSafetyRidingController::class, 'index']);
     Route::put('/pic/safety-riding/upload-after/{id}', [PicSafetyRidingController::class, 'uploadAfter']);
     Route::delete('/pic/safety-riding/delete-after/{id}/{index}', [PicSafetyRidingController::class, 'deleteAfterImage']);
+    Route::get('/pic/safety-riding/export', [PicSafetyRidingController::class, 'export']);
 
     // --- INSIDEN ---
     Route::get('/she/insiden', [InsidenController::class, 'index']);
@@ -227,6 +230,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/she/safety-Patrol/get-users-by-section/{section_id}', [SheSafetyPatrolController::class, 'getUsersBySection']);
     Route::delete('/she/safety-patrol/{id}/delete-image/{type}', [SheSafetyPatrolController::class, 'deleteImage']);
     Route::put('/she/safety-patrol/tindak-lanjut/{id}', [SheSafetyPatrolController::class, 'tindakLanjut']);
+    Route::get('/she/safety-patrol/export', [SheSafetyPatrolController::class, 'export']);
 
     Route::prefix('pic')->group(function () {
         Route::get('/safety-patrol', [PicSafetyPatrolController::class, 'index']);

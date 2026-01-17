@@ -112,7 +112,7 @@
                             </div>
                         </form>
                         <a href="{{ url('/pic/komitmenk3/export') }}?bulan={{ request('bulan') }}&tahun={{ request('tahun') }}" class="btn btn-outline-primary shadow-sm fw-semibold px-3">
-                            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export
+                            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Excel
                         </a>
                     </div>
                 </div>

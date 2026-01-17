@@ -53,7 +53,7 @@
                 </form>
 
                 <a href="{{ url('/she/safety-riding/export') }}" class="btn btn-success shadow-sm">
-                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Excel
                 </a>
             </div>
 

@@ -15,28 +15,28 @@ use Illuminate\Support\Facades\Storage;
 
 class SheSafetyRidingController extends Controller
 {
-      private function getPermission($feature)
+    private function getPermission($feature)
     {
-        return (object)['can_edit' => true, 'can_delete' => true];
+        return (object) ['can_edit' => true, 'can_delete' => true];
     }
 
     public function index(Request $request)
     {
-        $safetyridings = SafetyRiding::with(['pds', 'pfs', 'user.section']) 
+        $safetyridings = SafetyRiding::with(['pds', 'pfs', 'user.section'])
             ->when($request->search, function ($query, $search) {
                 $query->where('nopol', 'like', '%' . $search . '%')
-                      ->orWhere('keterangan_pelanggaran', 'like', '%' . $search . '%')
-                      ->orWhereHas('user', function ($q) use ($search) {
-                          $q->where('nama', 'like', '%' . $search . '%');
-                      });
+                    ->orWhere('keterangan_pelanggaran', 'like', '%' . $search . '%')
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('nama', 'like', '%' . $search . '%');
+                    });
             })
-            ->latest() 
-            ->get(); 
+            ->latest()
+            ->get();
 
         $masterPds = PelanggaranDokumen::all();
         $masterPfs = PelanggaranFisik::all();
         $sections = Section::all();
-        $permission = $this->getPermission('safety_riding'); 
+        $permission = $this->getPermission('safety_riding');
         $currentUser = Auth::user();
 
         return view('SHE.safetyriding', compact('safetyridings', 'masterPds', 'masterPfs', 'sections', 'permission', 'currentUser'));
@@ -45,9 +45,9 @@ class SheSafetyRidingController extends Controller
     public function getUsersBySection($section_id)
     {
         $users = User::where('section_id', $section_id)
-                    ->select('id', 'nama')
-                    ->get();
-        
+            ->select('id', 'nama')
+            ->get();
+
         return response()->json(['users' => $users]);
     }
 
@@ -58,7 +58,7 @@ class SheSafetyRidingController extends Controller
         $masterPfs = PelanggaranFisik::all();
         $sections = Section::all();
         $permission = $this->getPermission('safety_riding');
-        
+
         return view('SHE.edit_safetyriding', compact('laporan', 'masterPds', 'masterPfs', 'sections', 'permission'));
     }
 
@@ -70,15 +70,15 @@ class SheSafetyRidingController extends Controller
             'user_id' => 'required|exists:tb_user,id',
             'type_kendaraan' => 'required|string|max:100',
             'nopol' => 'required|string|max:15',
-            'pd_id' => 'nullable|array', 
-            'pf_id' => 'nullable|array', 
-            'keterangan_pelanggaran' => 'required|string|max:1000', 
+            'pd_id' => 'nullable|array',
+            'pf_id' => 'nullable|array',
+            'keterangan_pelanggaran' => 'required|string|max:1000',
             'bukti.*' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         try {
-            $totalPelanggaran = (is_array($request->pd_id) ? count($request->pd_id) : 0) + 
-                            (is_array($request->pf_id) ? count($request->pf_id) : 0);
+            $totalPelanggaran = (is_array($request->pd_id) ? count($request->pd_id) : 0) +
+                (is_array($request->pf_id) ? count($request->pf_id) : 0);
 
             // Upload multiple gambar
             $buktiPaths = [];
@@ -104,12 +104,12 @@ class SheSafetyRidingController extends Controller
                 'bukti' => $buktiPaths, // Simpan sebagai array, Laravel akan convert ke JSON
                 'status' => 'Open',
             ]);
-            
+
             // Simpan ke tabel pivot
             if (!empty($request->pd_id) && is_array($request->pd_id)) {
                 $laporan->pds()->attach($request->pd_id);
             }
-            
+
             if (!empty($request->pf_id) && is_array($request->pf_id)) {
                 $laporan->pfs()->attach($request->pf_id);
             }
@@ -124,27 +124,28 @@ class SheSafetyRidingController extends Controller
     public function update(Request $request, $id)
     {
         $laporan = SafetyRiding::findOrFail($id);
-        
+
         $request->validate([
-            'waktu_kejadian'            => 'required|date',
-            'user_id'                   => 'required|exists:tb_user,id',
-            'section_id'                => 'required|exists:tb_section,id',
-            'type_kendaraan'            => 'required|string|max:100',
-            'nopol'                     => 'required|string|max:15',
-            'pd_id'                     => 'nullable|array', 
-            'pf_id'                     => 'nullable|array', 
-            'keterangan_pelanggaran'    => 'required|string|max:1000', 
-            'status'                    => 'required|in:Open,Close', 
-            'bukti_baru.*'              => 'nullable|image|mimes:jpeg,png,jpg|max:2048', 
+            'waktu_kejadian' => 'required|date',
+            'user_id' => 'required|exists:tb_user,id',
+            'section_id' => 'required|exists:tb_section,id',
+            'type_kendaraan' => 'required|string|max:100',
+            'nopol' => 'required|string|max:15',
+            'pd_id' => 'nullable|array',
+            'pf_id' => 'nullable|array',
+            'keterangan_pelanggaran' => 'required|string|max:1000',
+            'status' => 'required|in:Open,Close',
+            'bukti_baru.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         try {
-            $totalPelanggaran = (is_array($request->pd_id) ? count($request->pd_id) : 0) + 
-                                (is_array($request->pf_id) ? count($request->pf_id) : 0);
+            $totalPelanggaran = (is_array($request->pd_id) ? count($request->pd_id) : 0) +
+                (is_array($request->pf_id) ? count($request->pf_id) : 0);
 
             // 1. Hapus semua gambar lama jika ada request untuk clear
             if ($request->has('clear_all_bukti') && $laporan->bukti) {
-                $oldBukti = json_decode($laporan->bukti, true);
+                // $laporan->bukti is already an array due to casting
+                $oldBukti = $laporan->bukti;
                 foreach ($oldBukti as $path) {
                     if (Storage::disk('public')->exists($path)) {
                         Storage::disk('public')->delete($path);
@@ -166,14 +167,14 @@ class SheSafetyRidingController extends Controller
 
             // 3. Update data - hanya gunakan gambar baru
             $updateData = [
-                'user_id'                   => $request->user_id,
-                'section_id'                => $request->section_id,
-                'waktu_kejadian'            => $request->waktu_kejadian,
-                'type_kendaraan'            => $request->type_kendaraan,
-                'nopol'                     => $request->nopol,
-                'keterangan_pelanggaran'    => $request->keterangan_pelanggaran,
-                'total_pelanggaran'         => $totalPelanggaran,
-                'status'                    => $request->status,
+                'user_id' => $request->user_id,
+                'section_id' => $request->section_id,
+                'waktu_kejadian' => $request->waktu_kejadian,
+                'type_kendaraan' => $request->type_kendaraan,
+                'nopol' => $request->nopol,
+                'keterangan_pelanggaran' => $request->keterangan_pelanggaran,
+                'total_pelanggaran' => $totalPelanggaran,
+                'status' => $request->status,
             ];
 
             // Jika ada gambar baru, update bukti
@@ -201,20 +202,20 @@ class SheSafetyRidingController extends Controller
     {
         try {
             $safetyRiding = SafetyRiding::findOrFail($id);
-            
+
             $safetyRiding->pds()->detach();
             $safetyRiding->pfs()->detach();
-            
+
             $buktiFiles = $safetyRiding->buktiFiles;
             foreach ($buktiFiles as $bukti) {
                 Storage::disk('public')->delete($bukti->path);
                 $bukti->delete();
             }
-            
+
             $safetyRiding->delete();
 
             return redirect()->route('safety-riding.index')->with('success', 'Laporan Safety Riding berhasil dihapus!');
-            
+
         } catch (\Exception $e) {
             return redirect()->route('safety-riding.index')->with('error', 'Gagal menghapus laporan: ' . $e->getMessage());
         }
@@ -226,28 +227,28 @@ class SheSafetyRidingController extends Controller
     {
         try {
             $laporan = SafetyRiding::findOrFail($id);
-            
-            // Decode JSON bukti
-            $buktiArray = $laporan->bukti ? json_decode($laporan->bukti, true) : [];
-            
+
+            // Atribut bukti sudah dicasting ke array di Model
+            $buktiArray = $laporan->bukti ?? [];
+
             if (isset($buktiArray[$imageIndex])) {
                 // Hapus file dari storage
                 $pathToDelete = $buktiArray[$imageIndex];
                 if (Storage::disk('public')->exists($pathToDelete)) {
                     Storage::disk('public')->delete($pathToDelete);
                 }
-                
+
                 // Hapus dari array
                 array_splice($buktiArray, $imageIndex, 1);
-                
+
                 // Update database
-                $laporan->update(['bukti' => json_encode($buktiArray)]);
-                
+                $laporan->update(['bukti' => $buktiArray]);
+
                 return response()->json(['success' => true]);
             }
-            
+
             return response()->json(['success' => false, 'message' => 'Gambar tidak ditemukan']);
-            
+
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -256,7 +257,7 @@ class SheSafetyRidingController extends Controller
     public function downloadLaporan($id)
     {
         $laporan = SafetyRiding::with(['pds', 'pfs', 'user.section'])->findOrFail($id);
-        
+
         // Buat konten CSV
         $csvContent = "LAPORAN SAFETY RIDING\n";
         $csvContent .= "No. Laporan: {$laporan->id}\n";
@@ -267,19 +268,19 @@ class SheSafetyRidingController extends Controller
         $csvContent .= "NOPOL: {$laporan->nopol}\n";
         $csvContent .= "Keterangan: {$laporan->keterangan_pelanggaran}\n";
         $csvContent .= "Status: {$laporan->status}\n";
-        
+
         $csvContent .= "\nPelanggaran Dokumen:\n";
         foreach ($laporan->pds as $pd) {
             $csvContent .= "- {$pd->nama_pd}\n";
         }
-        
+
         $csvContent .= "\nPelanggaran Fisik:\n";
         foreach ($laporan->pfs as $pf) {
             $csvContent .= "- {$pf->nama_pf}\n";
         }
-        
+
         $filename = "safety_riding_{$laporan->id}_" . date('Ymd_His') . ".txt";
-        
+
         return response($csvContent)
             ->header('Content-Type', 'text/plain')
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
@@ -288,20 +289,30 @@ class SheSafetyRidingController extends Controller
     public function tindakLanjut(Request $request, $id)
     {
         $laporan = SafetyRiding::findOrFail($id);
-        
+
         $request->validate([
             'status' => 'required|in:Close,Rejected',
             'catatan' => 'nullable|string|max:1000'
         ]);
-        
+
         $laporan->status = $request->status;
 
         if ($request->filled('catatan')) {
             $laporan->catatan = $request->catatan;
         }
-        
+
         $laporan->save();
-        
+
         return redirect()->back()->with('success', 'Status berhasil diupdate menjadi ' . $request->status);
+    }
+    public function export()
+    {
+        $timestamp = date('Ymd_His');
+        $filename = "safety_riding_she_{$timestamp}.xlsx";
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SafetyRidingExport(null),
+            $filename
+        );
     }
 }

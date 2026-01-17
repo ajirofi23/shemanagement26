@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHE Dashboard – PT AICC</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -48,8 +50,9 @@
             padding: 24px 0;
             display: flex;
             flex-direction: column;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.2);
-            z-index: 1040; /* DI BAWAH MODAL */
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+            z-index: 1040;
+            /* DI BAWAH MODAL */
             transition: all 0.3s ease;
         }
 
@@ -68,6 +71,28 @@
             padding: 0;
             margin: 0;
             flex: 1;
+            overflow-y: auto;
+            /* Enable vertical scrolling */
+            overflow-x: hidden;
+            /* Hide horizontal scrolling */
+        }
+
+        /* Custom Scrollbar for Menu */
+        .menu::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .menu::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .menu::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.4);
         }
 
         .menu a {
@@ -75,7 +100,7 @@
             align-items: center;
             gap: 14px;
             padding: 0.9rem 1.5rem;
-            color: rgba(255,255,255,0.9);
+            color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
             font-weight: 500;
             border-left: 4px solid transparent;
@@ -83,12 +108,12 @@
         }
 
         .menu a:hover {
-            background: rgba(255,255,255,0.12);
+            background: rgba(255, 255, 255, 0.12);
             transform: translateX(4px);
         }
 
         .menu a.active {
-            background: rgba(255,255,255,0.25);
+            background: rgba(255, 255, 255, 0.25);
             border-left-color: #fca311;
         }
 
@@ -148,7 +173,8 @@
             padding-top: calc(2rem + 64px);
             min-height: 100vh;
             position: relative;
-            z-index: auto; /* PENTING */
+            z-index: auto;
+            /* PENTING */
         }
 
         /* ========================================================= */
@@ -174,7 +200,7 @@
             .sidebar-backdrop {
                 position: fixed;
                 inset: 0;
-                background: rgba(0,0,0,0.5);
+                background: rgba(0, 0, 0, 0.5);
                 z-index: 1035;
                 display: none;
             }
@@ -188,100 +214,106 @@
 
 <body>
 
-<header class="app-header">
-    <div class="header-inner">
-        <span class="fw-semibold">Manager – PT AICC</span>
-        <span class="text-muted">Halo, {{ Auth::user()->nama ?? 'User' }}</span>
+    <header class="app-header">
+        <div class="header-inner">
+            <span class="fw-semibold">Manager – PT AICC</span>
+            <span class="text-muted">Halo, {{ Auth::user()->nama ?? 'User' }}</span>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="brand">
+            <img src="{{ asset('template/logo/logo.png') }}" id="sidebarLogo">
+        </div>
+
+        <ul class="menu">
+            {{-- DASHBOARD --}}
+            <li>
+                <a href="{{ url('/manager/dashboard') }}" class="{{ request()->is('manager/dashboard') ? 'active' : '' }}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <hr class="text-white opacity-50 mx-3">
+
+            {{-- PROGRAM SAFETY --}}
+            <li>
+                <a href="{{ url('/manager/programsafety') }}"
+                    class="{{ request()->is('manager/programsafety*') ? 'active' : '' }}">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Program Safety</span>
+                </a>
+            </li>
+
+            {{-- HYARI HATTO --}}
+            <li>
+                <a href="{{ url('/manager/hyari-hatto') }}"
+                    class="{{ request()->is('manager/hyari-hatto*') ? 'active' : '' }}">
+                    <i class="bi bi-journal-text"></i>
+                    <span>Hyari Hatto</span>
+                </a>
+            </li>
+
+            {{-- INSIDEN --}}
+            <li>
+                <a href="{{ url('/manager/insiden') }}" class="{{ request()->is('manager/insiden*') ? 'active' : '' }}">
+                    <i class="bi bi-x-octagon"></i>
+                    <span>Accident</span>
+                </a>
+            </li>
+
+            {{-- KOMITMEN K3 --}}
+            <li>
+                <a href="{{ url('/manager/komitmen-k3') }}"
+                    class="{{ request()->is('manager/komitmen-k3*') ? 'active' : '' }}">
+                    <i class="bi bi-file-earmark-check"></i>
+                    <span>Komitmen K3</span>
+                </a>
+            </li>
+
+            {{-- TEMUAN SAFETY RIDING --}}
+            <li>
+                <a href="{{ url('/manager/safety-riding') }}"
+                    class="{{ request()->is('manager/safety-riding*') ? 'active' : '' }}">
+                    <i class="bi bi-bicycle"></i>
+                    <span>Temuan Safety Riding</span>
+                </a>
+            </li>
+
+            {{-- TEMUAN SAFETY PATROL --}}
+            <li>
+                <a href="{{ url('/manager/safety-patrol') }}"
+                    class="{{ request()->is('manager/safety-patrol*') ? 'active' : '' }}">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Temuan Safety Patrol</span>
+                </a>
+            </li>
+        </ul>
+
+
+        <div class="logout">
+            <button class="logout-btn"
+                onclick="event.preventDefault();document.getElementById('logout-form').submit();">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </div>
+
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
+            @csrf
+        </form>
+    </nav>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <div class="main-content">
+        @yield('content')
     </div>
-</header>
 
-<nav class="sidebar" id="sidebar">
-    <div class="brand">
-        <img src="{{ asset('template/logo/logo.png') }}" id="sidebarLogo">
-    </div>
+    {{-- MODAL HARUS DI SINI --}}
+    @yield('modals')
 
-    <ul class="menu">
-    {{-- DASHBOARD --}}
-    <li>
-        <a href="{{ url('/manager/dashboard') }}" class="{{ request()->is('manager/dashboard')?'active':'' }}">
-            <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
-        </a>
-    </li>
-    <hr class="text-white opacity-50 mx-3">
-
-    {{-- PROGRAM SAFETY --}}
-    <li>
-        <a href="{{ url('/manager/programsafety') }}" class="{{ request()->is('manager/programsafety*')?'active':'' }}">
-            <i class="bi bi-shield-check"></i>
-            <span>Program Safety</span>
-        </a>
-    </li>
-
-    {{-- HYARI HATTO --}}
-    <li>
-        <a href="{{ url('/manager/hyari-hatto') }}" class="{{ request()->is('manager/hyari-hatto*')?'active':'' }}">
-            <i class="bi bi-journal-text"></i>
-            <span>Hyari Hatto</span>
-        </a>
-    </li>
-
-    {{-- INSIDEN --}}
-    <li>
-        <a href="{{ url('/manager/insiden') }}" class="{{ request()->is('manager/insiden*')?'active':'' }}">
-            <i class="bi bi-x-octagon"></i>
-            <span>Accident</span>
-        </a>
-    </li>
-
-    {{-- KOMITMEN K3 --}}
-    <li>
-        <a href="{{ url('/manager/komitmen-k3') }}" class="{{ request()->is('manager/komitmen-k3*')?'active':'' }}">
-            <i class="bi bi-file-earmark-check"></i>
-            <span>Komitmen K3</span>
-        </a>
-    </li>
-
-    {{-- TEMUAN SAFETY RIDING --}}
-    <li>
-        <a href="{{ url('/manager/safety-riding') }}" class="{{ request()->is('manager/safety-riding*')?'active':'' }}">
-            <i class="bi bi-bicycle"></i>
-            <span>Temuan Safety Riding</span>
-        </a>
-    </li>
-
-    {{-- TEMUAN SAFETY PATROL --}}
-    <li>
-        <a href="{{ url('/manager/safety-patrol') }}" class="{{ request()->is('manager/safety-patrol*')?'active':'' }}">
-            <i class="bi bi-shield-lock"></i>
-            <span>Temuan Safety Patrol</span>
-        </a>
-    </li>
-</ul>
-
-
-    <div class="logout">
-        <button class="logout-btn"
-            onclick="event.preventDefault();document.getElementById('logout-form').submit();">
-            <i class="bi bi-box-arrow-right"></i> Logout
-        </button>
-    </div>
-
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
-        @csrf
-    </form>
-</nav>
-
-<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
-<div class="main-content">
-    @yield('content')
-</div>
-
-{{-- MODAL HARUS DI SINI --}}
-@yield('modals')
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
+
 </html>

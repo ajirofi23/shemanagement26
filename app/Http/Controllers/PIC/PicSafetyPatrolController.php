@@ -23,8 +23,8 @@ class PicSafetyPatrolController extends Controller
             ->when($request->search, function ($q, $search) {
                 $q->where(function ($qq) use ($search) {
                     $qq->where('eporte', 'like', "%$search%")
-                       ->orWhere('area', 'like', "%$search%")
-                       ->orWhere('problem', 'like', "%$search%");
+                        ->orWhere('area', 'like', "%$search%")
+                        ->orWhere('problem', 'like', "%$search%");
                 });
             })
             ->latest()
@@ -82,7 +82,7 @@ class PicSafetyPatrolController extends Controller
             /* UPDATE DB */
             $patrol->update([
                 'foto_after' => 'safety_patrol/after/' . $filename,
-                'status'     => 'Progress',
+                'status' => 'Progress',
                 'updated_by' => $user->id,
                 'updated_at' => now(),
             ]);
@@ -116,7 +116,7 @@ class PicSafetyPatrolController extends Controller
 
         $patrol->update([
             'foto_after' => null,
-            'status'     => 'Open',
+            'status' => 'Open',
             'updated_by' => $user->id,
         ]);
 
@@ -129,31 +129,24 @@ class PicSafetyPatrolController extends Controller
     /* ======================================================
      * EXPORT CSV (PIC)
      * ====================================================== */
+    /* ======================================================
+     * EXPORT EXCEL (PIC)
+     * ====================================================== */
     public function export()
     {
         $user = Auth::user();
-
-        $patrols = SafetyPatrol::with(['section', 'user'])
-            ->where('section_id', $user->section_id)
-            ->latest()
-            ->get();
-
-        $csv = "No,Tanggal,E-PORTE,Area,Problem,Counter Measure,Section,Due Date,Status\n";
-
-        foreach ($patrols as $i => $p) {
-            $csv .= ($i+1).",";
-            $csv .= Carbon::parse($p->tanggal)->format('d-m-Y').",";
-            $csv .= "\"$p->eporte\",\"$p->area\",";
-            $csv .= "\"".str_replace('"','""',$p->problem)."\",";
-            $csv .= "\"".str_replace('"','""',$p->counter_measure)."\",";
-            $csv .= "\"{$p->section->section}\",";
-            $csv .= ($p->due_date ? Carbon::parse($p->due_date)->format('d-m-Y') : '').",";
-            $csv .= "$p->status\n";
+        if (!$user->section_id) {
+            return back()->with('error', 'Section user tidak ditemukan.');
         }
 
-        return response($csv)
-            ->header('Content-Type','text/csv')
-            ->header('Content-Disposition','attachment; filename=safety_patrol_pic.csv');
+        $sectionName = $user->section->section ?? 'All';
+        $timestamp = date('Ymd_His');
+        $filename = "safety_patrol_{$sectionName}_{$timestamp}.xlsx";
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SafetyPatrolExport($user->section_id),
+            $filename
+        );
     }
 
     /* ======================================================
@@ -161,7 +154,7 @@ class PicSafetyPatrolController extends Controller
      * ====================================================== */
     public function viewDetail($id)
     {
-        $patrol = SafetyPatrol::with(['section','user'])->findOrFail($id);
+        $patrol = SafetyPatrol::with(['section', 'user'])->findOrFail($id);
         $user = Auth::user();
 
         if ($patrol->section_id !== $user->section_id) {
@@ -171,16 +164,16 @@ class PicSafetyPatrolController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'id'            => $patrol->id,
-                'tanggal'       => Carbon::parse($patrol->tanggal)->format('d-m-Y'),
-                'eporte'        => $patrol->eporte,
-                'area'          => $patrol->area,
-                'problem'       => $patrol->problem,
-                'counter'       => $patrol->counter_measure,
-                'section'       => $patrol->section->section,
-                'status'        => $patrol->status,
-                'foto_before'   => $patrol->foto_before ? asset('storage/'.$patrol->foto_before) : null,
-                'foto_after'    => $patrol->foto_after ? asset('storage/'.$patrol->foto_after) : null,
+                'id' => $patrol->id,
+                'tanggal' => Carbon::parse($patrol->tanggal)->format('d-m-Y'),
+                'eporte' => $patrol->eporte,
+                'area' => $patrol->area,
+                'problem' => $patrol->problem,
+                'counter' => $patrol->counter_measure,
+                'section' => $patrol->section->section,
+                'status' => $patrol->status,
+                'foto_before' => $patrol->foto_before ? asset('storage/' . $patrol->foto_before) : null,
+                'foto_after' => $patrol->foto_after ? asset('storage/' . $patrol->foto_after) : null,
             ]
         ]);
     }

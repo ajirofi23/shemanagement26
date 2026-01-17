@@ -33,12 +33,12 @@ class PicHyariHattoController extends Controller
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('deskripsi', 'like', '%' . $search . '%')
-                      ->orWhereHas('ptas', function ($q2) use ($search) {
-                          $q2->where('nama_pta', 'like', '%' . $search . '%');
-                      })
-                      ->orWhereHas('ktas', function ($q3) use ($search) {
-                          $q3->where('nama_kta', 'like', '%' . $search . '%');
-                      });
+                        ->orWhereHas('ptas', function ($q2) use ($search) {
+                            $q2->where('nama_pta', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('ktas', function ($q3) use ($search) {
+                            $q3->where('nama_kta', 'like', '%' . $search . '%');
+                        });
                 });
             })
 
@@ -48,10 +48,10 @@ class PicHyariHattoController extends Controller
         // Master data
         $masterPtas = Pta::all();
         $masterKtas = Kta::all();
-        $masterPbs  = Pb::all();
+        $masterPbs = Pb::all();
 
-        $permission = (object)[
-            'can_edit'   => true,
+        $permission = (object) [
+            'can_edit' => true,
             'can_delete' => true
         ];
 
@@ -72,13 +72,13 @@ class PicHyariHattoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'pta_id'     => 'required|array',
-            'kta_id'     => 'required|array',
-            'pb_id'      => 'required|array',
-            'lokasi'     => 'required|string',
-            'deskripsi'  => 'required|string|max:1000',
-            'usulan'     => 'required|string|max:1000',
-            'bukti'      => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'pta_id' => 'required|array',
+            'kta_id' => 'required|array',
+            'pb_id' => 'required|array',
+            'lokasi' => 'required|string',
+            'deskripsi' => 'required|string|max:1000',
+            'usulan' => 'required|string|max:1000',
+            'bukti' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $user = Auth::user();
@@ -89,13 +89,13 @@ class PicHyariHattoController extends Controller
         }
 
         $laporan = HyariHatto::create([
-            'deskripsi'  => $request->deskripsi,
-            'usulan'     => $request->usulan,
-            'lokasi'     => $request->lokasi,
-            'bukti'      => $path_bukti,
-            'rekomendasi'=> null,
+            'deskripsi' => $request->deskripsi,
+            'usulan' => $request->usulan,
+            'lokasi' => $request->lokasi,
+            'bukti' => $path_bukti,
+            'rekomendasi' => null,
             'section_id' => $user->section_id, // 🔒 AMBIL DARI SESSION
-            'pelapor'    => $user->id,
+            'pelapor' => $user->id,
         ]);
 
         $laporan->ptas()->sync($request->pta_id);
@@ -118,13 +118,13 @@ class PicHyariHattoController extends Controller
             ->firstOrFail();
 
         $request->validate([
-            'pta_id'      => 'required|array',
-            'kta_id'      => 'required|array',
-            'pb_id'       => 'required|array',
-            'deskripsi'   => 'required|string|max:1000',
-            'usulan'      => 'required|string|max:1000',
+            'pta_id' => 'required|array',
+            'kta_id' => 'required|array',
+            'pb_id' => 'required|array',
+            'deskripsi' => 'required|string|max:1000',
+            'usulan' => 'required|string|max:1000',
             'rekomendasi' => 'nullable|string|max:1000',
-            'bukti'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'bukti' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $path_bukti = $laporan->bukti;
@@ -136,10 +136,10 @@ class PicHyariHattoController extends Controller
         }
 
         $laporan->update([
-            'deskripsi'   => $request->deskripsi,
-            'usulan'      => $request->usulan,
+            'deskripsi' => $request->deskripsi,
+            'usulan' => $request->usulan,
             'rekomendasi' => $request->rekomendasi,
-            'bukti'       => $path_bukti,
+            'bukti' => $path_bukti,
             // ❌ section_id TIDAK BOLEH DIUBAH
         ]);
 
@@ -184,5 +184,41 @@ class PicHyariHattoController extends Controller
             new HyariHattoExport($request->search),
             "laporan_hyari_hatto_{$date}.xlsx"
         );
+    }
+    /**
+     * =====================================================
+     * DOWNLOAD PDF
+     * =====================================================
+     */
+    public function downloadPdf($id)
+    {
+        $data = HyariHatto::with(['ptas', 'ktas', 'pbs', 'user', 'section'])
+            ->where('id', $id)
+            ->where('section_id', Auth::user()->section_id) // 🔒 PROTEKSI
+            ->firstOrFail();
+
+        $masterPtas = Pta::all();
+        $masterKtas = Kta::all();
+        $masterPbs = Pb::all();
+
+        // Menggunakan view yang sama dengan SHE karena formatnya standar
+        $html = view('SHE.pdf_hyari_hatto', compact(
+            'data',
+            'masterPtas',
+            'masterKtas',
+            'masterPbs'
+        ))->render();
+
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+        ]);
+
+        $mpdf->WriteHTML($html);
+        return $mpdf->Output("Hiyari_Hatto_{$data->id}.pdf", 'I');
     }
 }

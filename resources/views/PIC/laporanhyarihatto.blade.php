@@ -44,7 +44,7 @@
 
                 {{-- Export (ENDPOINT disesuaikan) --}}
                 <a href="{{ url('/pic/hyari-hatto/export/excel') }}" class="btn btn-success shadow-sm">
-                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Excel
                 </a>
             </div>
 

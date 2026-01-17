@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHE Dashboard – PT AICC</title>
 
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -20,16 +22,16 @@
             font-family: 'Poppins', sans-serif;
             transition: margin-left 0.3s ease;
         }
-        
+
         /* === PERBAIKAN Z-INDEX MUTLAK UNTUK MODAL === */
         .modal-backdrop {
             z-index: 1070 !important;
         }
-        
+
         .modal {
             z-index: 1071 !important;
         }
-        
+
         /* ---------------------------- SIDEBAR STYLES ---------------------------- */
         .sidebar {
             width: 260px;
@@ -52,15 +54,15 @@
             text-align: center;
             padding: 0 1.25rem 2rem;
             letter-spacing: -1px;
-            color: white; 
-            overflow: hidden; 
+            color: white;
+            overflow: hidden;
         }
 
         /* Gaya untuk Gambar Logo */
         #sidebarLogo {
             max-width: 100%;
             height: auto;
-            max-height: 40px; 
+            max-height: 40px;
             margin: 0 auto;
             display: block;
             transition: all 0.3s ease;
@@ -71,6 +73,28 @@
             padding: 0 0 2rem;
             margin: 0;
             flex: 1;
+            overflow-y: auto;
+            /* Enable vertical scrolling */
+            overflow-x: hidden;
+            /* Hide horizontal scrolling */
+        }
+
+        /* Custom Scrollbar for Menu */
+        .menu::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .menu::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .menu::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.4);
         }
 
         /* Gaya Link Menu Utama */
@@ -99,24 +123,24 @@
             color: white;
             border-left-color: #fca311;
         }
-        
+
         .menu a i {
             font-size: 1.25rem;
             min-width: 24px;
             text-align: center;
         }
-        
+
         /* Gaya untuk Dropdown (Sub-menu) */
         .menu-dropdown {
             /* Gaya untuk item yang memiliki sub-menu */
         }
-        
+
         .dropdown-toggle-icon {
             margin-left: auto;
             transition: transform 0.3s ease;
         }
-        
-        .menu-dropdown.open > a .dropdown-toggle-icon {
+
+        .menu-dropdown.open>a .dropdown-toggle-icon {
             transform: rotate(90deg);
         }
 
@@ -126,23 +150,25 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.4s ease-in-out, padding 0.3s ease;
-            background: rgba(0, 0, 0, 0.1); 
+            background: rgba(0, 0, 0, 0.1);
         }
 
         .menu-dropdown.open .submenu {
-            max-height: 500px; /* Cukup besar untuk menampung semua item */
+            max-height: 500px;
+            /* Cukup besar untuk menampung semua item */
         }
 
         .submenu li a {
-            padding: 0.7rem 1.5rem 0.7rem 3.2rem; /* Indentasi lebih dalam */
+            padding: 0.7rem 1.5rem 0.7rem 3.2rem;
+            /* Indentasi lebih dalam */
             font-size: 0.95rem;
             font-weight: 400;
             gap: 10px;
-            border-left: none; 
+            border-left: none;
         }
-        
+
         .submenu li a.active {
-            background: rgba(0, 0, 0, 0.2); 
+            background: rgba(0, 0, 0, 0.2);
             border-left: 4px solid #fca311;
         }
 
@@ -174,7 +200,7 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 14px rgba(220, 38, 38, 0.4);
         }
-        
+
         /* ---------------------------- TOPBAR STYLES ----------------------------- */
         .app-header {
             position: fixed;
@@ -185,7 +211,7 @@
             background: #ffffff;
             border-bottom: 1px solid #e5e7eb;
             z-index: 1020;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             transition: left 0.3s ease;
         }
 
@@ -196,7 +222,7 @@
             align-items: center;
             justify-content: space-between;
         }
-        
+
         .app-title {
             font-weight: 600;
             font-size: 18px;
@@ -211,26 +237,26 @@
             color: #111827;
             margin-right: 15px;
             cursor: pointer;
-            display: none; 
+            display: none;
         }
-        
+
         /* ----------------------- MAIN CONTENT STYLES -------------------------- */
         .main-content {
             margin-left: 260px;
-            padding: 2rem; 
-            padding-top: calc(2rem + 64px); 
+            padding: 2rem;
+            padding-top: calc(2rem + 64px);
             min-height: 100vh;
             position: relative;
-            z-index: 50; 
-            overflow-x: auto; 
+            z-index: 50;
+            overflow-x: auto;
             transition: margin-left 0.3s ease;
         }
-        
+
         /* ----------------------- TOGGLE DESKTOP STYLES ----------------------- */
 
         /* 1. Sidebar menyempit */
         body.toggled .sidebar {
-            width: 65px; 
+            width: 65px;
             padding: 24px 0 0;
         }
 
@@ -238,81 +264,86 @@
         body.toggled .app-header {
             left: 65px;
         }
+
         body.toggled .main-content {
-            margin-left: 65px; 
+            margin-left: 65px;
         }
 
         /* 3. Penyesuaian Brand/Logo saat Toggle */
         body.toggled .brand {
-            padding: 0 0 2rem; 
+            padding: 0 0 2rem;
         }
 
         body.toggled #sidebarLogo {
-            max-height: 30px; 
+            max-height: 30px;
             width: 30px;
             height: 30px;
         }
-        
+
         /* 4. Menyembunyikan teks menu/logout */
         body.toggled .menu a span,
         body.toggled .dropdown-toggle-icon {
             display: none;
         }
-        
+
         body.toggled .logout {
             padding: 0;
         }
+
         body.toggled .logout-btn span {
             display: none;
         }
+
         body.toggled .logout-btn {
             justify-content: center;
             border-radius: 0;
             padding: 0.85rem 0.5rem;
         }
-        
+
         /* 5. Memastikan icon menu tetap di tengah/rapi saat menyempit */
         body.toggled .menu a {
             justify-content: center;
-            padding: 0.9rem 0; 
+            padding: 0.9rem 0;
             gap: 0;
         }
-        
+
         /* 6. Menyembunyikan Submenu saat toggled */
         body.toggled .submenu {
             display: none !important;
         }
-        
+
         /* 7. Mengubah icon toggle saat sidebar menyempit */
         body.toggled #sidebarToggleDesktop i {
             transform: rotate(180deg);
         }
 
         /* ---------------------------- MEDIA QUERIES ----------------------------- */
-        @media (max-width: 991.98px) { 
+        @media (max-width: 991.98px) {
+
             /* Sidebar Mobile */
             .sidebar {
                 transform: translateX(-260px);
             }
+
             .sidebar.show {
                 transform: translateX(0);
             }
-            
+
             /* Topbar Mobile */
             .app-header {
                 left: 0;
             }
-            
+
             /* Konten Utama Mobile */
             .main-content {
                 margin-left: 0;
             }
-            
+
             /* Tampilkan Tombol Toggle Mobile */
             .navbar-toggler-mobile {
-                display: block; 
+                display: block;
             }
-            
+
             /* Sembunyikan Tombol Toggle Desktop */
             #sidebarToggleDesktop {
                 display: none !important;
@@ -326,9 +357,10 @@
                 right: 0;
                 bottom: 0;
                 background-color: rgba(0, 0, 0, 0.5);
-                z-index: 1050; 
+                z-index: 1050;
                 display: none;
             }
+
             .sidebar-backdrop.show {
                 display: block;
             }
@@ -338,12 +370,13 @@
                 width: 260px;
                 transform: translateX(-260px);
             }
+
             body.toggled .app-header,
             body.toggled .main-content {
                 left: 0;
                 margin-left: 0;
             }
-            
+
             /* Pastikan Submenu tetap terlihat di mobile */
             body.toggled .submenu {
                 display: block !important;
@@ -351,14 +384,16 @@
         }
     </style>
 </head>
+
 <body>
-    
+
     <header class="app-header">
         <div class="header-inner">
             <div class="left d-flex align-items-center">
-                
+
                 {{-- Tombol Toggle Desktop (NEW) --}}
-                <button class="btn btn-sm text-dark me-3 d-none d-lg-block" type="button" id="sidebarToggleDesktop" title="Toggle Sidebar">
+                <button class="btn btn-sm text-dark me-3 d-none d-lg-block" type="button" id="sidebarToggleDesktop"
+                    title="Toggle Sidebar">
                     <i class="bi bi-arrow-bar-left fs-5"></i>
                 </button>
 
@@ -376,7 +411,7 @@
                         Halo, {{ Auth::user()->nama ?? 'Pengguna' }}
                     </span>
                 </div>
-                
+
                 <div class="user-menu" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-person-circle user-icon"></i>
                 </div>
@@ -384,9 +419,11 @@
                 {{-- Dropdown Sederhana --}}
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                     <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Pengaturan Akun</a></li>
-                    <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a class="dropdown-item text-danger" href="#" 
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#"
                             onclick="event.preventDefault(); document.getElementById('logout-form-topbar').submit();">
                             <i class="bi bi-box-arrow-right me-2"></i> Logout
                         </a>
@@ -407,141 +444,132 @@
         <div class="brand">
             <img src="{{ asset('template/logo/logo.png') }}" alt="AICC Logo" id="sidebarLogo" class="img-fluid">
         </div>
-        
+
         <ul class="menu">
-    {{-- ================= DASHBOARD ================= --}}
-    <li>
-        <a href="{{ url('/she/dashboard') }}"
-           class="{{ request()->is('she/dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
-        </a>
-    </li>
-
-    {{-- ================= HYARI HATTO ================= --}}
-    <li>
-        <a href="{{ url('/she/hyari-hatto') }}"
-           class="{{ request()->is('she/hyari-hatto*') ? 'active' : '' }}">
-            <i class="bi bi-journal-check"></i>
-            <span>Hyari Hatto</span>
-        </a>
-    </li>
-
-    {{-- ================= INSIDEN ================= --}}
-    <li>
-        <a href="{{ url('/she/insiden') }}"
-           class="{{ request()->is('she/insiden*') ? 'active' : '' }}">
-            <i class="bi bi-x-octagon"></i>
-            <span>Accident</span>
-        </a>
-    </li>
-
-    {{-- ================= KOMITMEN K3 ================= --}}
-    <li>
-        <a href="{{ url('/she/komitmen-k3') }}"
-           class="{{ request()->is('she/komitmen-k3*') ? 'active' : '' }}">
-            <i class="bi bi-file-earmark-check"></i>
-            <span>Komitmen K3</span>
-        </a>
-    </li>
-
-    {{-- ================= SAFETY RIDING ================= --}}
-    <li>
-        <a href="{{ url('/she/safety-riding') }}"
-           class="{{ request()->is('she/safety-riding*') ? 'active' : '' }}">
-            <i class="bi bi-bicycle"></i>
-            <span>Safety Riding</span>
-        </a>
-    </li>
-
-    {{-- ================= SAFETY PATROL ================= --}}
-    <li>
-        <a href="{{ url('/she/safety-patrol') }}"
-           class="{{ request()->is('she/safety-patrol*') ? 'active' : '' }}">
-            <i class="bi bi-shield-lock"></i>
-            <span>Safety Patrol</span>
-        </a>
-    </li>
-
-    {{-- ================= DIVIDER ================= --}}
-    <li>
-        <hr class="dropdown-divider my-2 mx-3"
-            style="border-color: rgba(255,255,255,0.2);">
-    </li>
-
-    {{-- ================= DATA MASTER (DROPDOWN) ================= --}}
-    @php
-        $dataMasterActive =
-            request()->is('she/master/pta*') ||
-            request()->is('she/master/kta*') ||
-            request()->is('she/master/pb*')  ||
-            request()->is('she/master/pf*')  ||
-            request()->is('she/master/pd*');
-    @endphp
-
-    <li class="menu-dropdown {{ $dataMasterActive ? 'open' : '' }}">
-        <a href="#"
-           class="dropdown-toggle {{ $dataMasterActive ? 'active' : '' }}"
-           data-bs-toggle="collapse"
-           data-bs-target="#submenuDataMaster"
-           aria-expanded="{{ $dataMasterActive ? 'true' : 'false' }}">
-            <i class="bi bi-database"></i>
-            <span>Data Master</span>
-            <i class="bi bi-chevron-right dropdown-toggle-icon"></i>
-        </a>
-
-        <ul class="submenu collapse {{ $dataMasterActive ? 'show' : '' }}"
-            id="submenuDataMaster"
-            data-bs-parent=".menu">
-
+            {{-- ================= DASHBOARD ================= --}}
             <li>
-                <a href="{{ url('/she/master/pta') }}"
-                   class="{{ request()->is('she/master/pta*') ? 'active' : '' }}">
-                    <i class="bi bi-dot"></i>
-                    <span>Hyari - PTA</span>
+                <a href="{{ url('/she/dashboard') }}" class="{{ request()->is('she/dashboard') ? 'active' : '' }}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
                 </a>
             </li>
 
+            {{-- ================= HYARI HATTO ================= --}}
             <li>
-                <a href="{{ url('/she/master/kta') }}"
-                   class="{{ request()->is('she/master/kta*') ? 'active' : '' }}">
-                    <i class="bi bi-dot"></i>
-                    <span>Hyari - KTA</span>
+                <a href="{{ url('/she/hyari-hatto') }}" class="{{ request()->is('she/hyari-hatto*') ? 'active' : '' }}">
+                    <i class="bi bi-journal-check"></i>
+                    <span>Hyari Hatto</span>
                 </a>
             </li>
 
+            {{-- ================= INSIDEN ================= --}}
             <li>
-                <a href="{{ url('/she/master/pb') }}"
-                   class="{{ request()->is('she/master/pb*') ? 'active' : '' }}">
-                    <i class="bi bi-dot"></i>
-                    <span>Hyari - PB</span>
+                <a href="{{ url('/she/insiden') }}" class="{{ request()->is('she/insiden*') ? 'active' : '' }}">
+                    <i class="bi bi-x-octagon"></i>
+                    <span>Accident</span>
                 </a>
             </li>
 
+            {{-- ================= KOMITMEN K3 ================= --}}
             <li>
-                <a href="{{ url('/she/master/pf') }}"
-                   class="{{ request()->is('she/master/pf*') ? 'active' : '' }}">
-                    <i class="bi bi-dot"></i>
-                    <span>Riding - PF</span>
+                <a href="{{ url('/she/komitmen-k3') }}" class="{{ request()->is('she/komitmen-k3*') ? 'active' : '' }}">
+                    <i class="bi bi-file-earmark-check"></i>
+                    <span>Komitmen K3</span>
                 </a>
             </li>
 
+            {{-- ================= SAFETY RIDING ================= --}}
             <li>
-                <a href="{{ url('/she/master/pd') }}"
-                   class="{{ request()->is('she/master/pd*') ? 'active' : '' }}">
-                    <i class="bi bi-dot"></i>
-                    <span>Riding - PD</span>
+                <a href="{{ url('/she/safety-riding') }}"
+                    class="{{ request()->is('she/safety-riding*') ? 'active' : '' }}">
+                    <i class="bi bi-bicycle"></i>
+                    <span>Safety Riding</span>
                 </a>
             </li>
 
+            {{-- ================= SAFETY PATROL ================= --}}
+            <li>
+                <a href="{{ url('/she/safety-patrol') }}"
+                    class="{{ request()->is('she/safety-patrol*') ? 'active' : '' }}">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Safety Patrol</span>
+                </a>
+            </li>
+
+            {{-- ================= DIVIDER ================= --}}
+            <li>
+                <hr class="dropdown-divider my-2 mx-3" style="border-color: rgba(255,255,255,0.2);">
+            </li>
+
+            {{-- ================= DATA MASTER (DROPDOWN) ================= --}}
+            @php
+                $dataMasterActive =
+                    request()->is('she/master/pta*') ||
+                    request()->is('she/master/kta*') ||
+                    request()->is('she/master/pb*') ||
+                    request()->is('she/master/pf*') ||
+                    request()->is('she/master/pd*');
+            @endphp
+
+            <li class="menu-dropdown {{ $dataMasterActive ? 'open' : '' }}">
+                <a href="#" class="dropdown-toggle {{ $dataMasterActive ? 'active' : '' }}" data-bs-toggle="collapse"
+                    data-bs-target="#submenuDataMaster" aria-expanded="{{ $dataMasterActive ? 'true' : 'false' }}">
+                    <i class="bi bi-database"></i>
+                    <span>Data Master</span>
+                    <i class="bi bi-chevron-right dropdown-toggle-icon"></i>
+                </a>
+
+                <ul class="submenu collapse {{ $dataMasterActive ? 'show' : '' }}" id="submenuDataMaster"
+                    data-bs-parent=".menu">
+
+                    <li>
+                        <a href="{{ url('/she/master/pta') }}"
+                            class="{{ request()->is('she/master/pta*') ? 'active' : '' }}">
+                            <i class="bi bi-dot"></i>
+                            <span>Hyari - PTA</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ url('/she/master/kta') }}"
+                            class="{{ request()->is('she/master/kta*') ? 'active' : '' }}">
+                            <i class="bi bi-dot"></i>
+                            <span>Hyari - KTA</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ url('/she/master/pb') }}"
+                            class="{{ request()->is('she/master/pb*') ? 'active' : '' }}">
+                            <i class="bi bi-dot"></i>
+                            <span>Hyari - PB</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ url('/she/master/pf') }}"
+                            class="{{ request()->is('she/master/pf*') ? 'active' : '' }}">
+                            <i class="bi bi-dot"></i>
+                            <span>Riding - PF</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ url('/she/master/pd') }}"
+                            class="{{ request()->is('she/master/pd*') ? 'active' : '' }}">
+                            <i class="bi bi-dot"></i>
+                            <span>Riding - PD</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
         </ul>
-    </li>
-</ul>
 
 
         <div class="logout">
-            <button type="button" class="logout-btn" 
-                    onclick="event.preventDefault(); document.getElementById('logout-form-sidebar').submit();">
+            <button type="button" class="logout-btn"
+                onclick="event.preventDefault(); document.getElementById('logout-form-sidebar').submit();">
                 <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
             </button>
         </div>
@@ -551,12 +579,12 @@
             @csrf
         </form>
     </nav>
-    
+
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <div class="main-content">
         @yield('content')
-        
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -584,7 +612,7 @@
         // Memuat status toggle dari localStorage saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
             const toggledState = localStorage.getItem('sidebarToggled');
-            
+
             if (toggledState === 'true') {
                 if (window.innerWidth >= 992) {
                     body.classList.add('toggled');
@@ -592,7 +620,7 @@
                     body.classList.remove('toggled');
                 }
             }
-            
+
             // Inisialisasi status dropdown saat dimuat (untuk Bootstrap Collapse)
             const activeDropdowns = document.querySelectorAll('.menu-dropdown.open');
             activeDropdowns.forEach(activeDropdown => {
@@ -607,7 +635,7 @@
         if (sidebarToggle) {
             sidebarToggle.addEventListener('click', toggleSidebarMobile);
         }
-        
+
         if (sidebarToggleDesktop) {
             sidebarToggleDesktop.addEventListener('click', toggleSidebarDesktop);
         }
@@ -616,7 +644,7 @@
         if (sidebarBackdrop) {
             sidebarBackdrop.addEventListener('click', () => {
                 if (sidebar.classList.contains('show')) {
-                    toggleSidebarMobile(); 
+                    toggleSidebarMobile();
                 }
             });
         }
@@ -631,13 +659,13 @@
                 }
             });
         });
-        
+
         // Handle Toggle Dropdown Manual (menambahkan/menghapus class 'open' untuk CSS custom)
         document.querySelectorAll('.menu-dropdown .dropdown-toggle').forEach(toggle => {
-            toggle.addEventListener('click', function(e) {
+            toggle.addEventListener('click', function (e) {
                 // Mencegah navigasi jika href="#"
-                e.preventDefault(); 
-                
+                e.preventDefault();
+
                 const parentLi = this.closest('.menu-dropdown');
                 const submenu = parentLi.querySelector('.submenu');
                 const isOpening = !parentLi.classList.contains('open');
@@ -648,11 +676,11 @@
                         openLi.classList.remove('open');
                         const collapseElement = openLi.querySelector('.submenu');
                         if (collapseElement) {
-                             new bootstrap.Collapse(collapseElement, { toggle: false }).hide();
+                            new bootstrap.Collapse(collapseElement, { toggle: false }).hide();
                         }
                     }
                 });
-                
+
                 // Toggle class 'open' pada parent <li>
                 parentLi.classList.toggle('open', isOpening);
 
@@ -682,6 +710,7 @@
             }
         });
     </script>
-@yield('modals')
+    @yield('modals')
 </body>
+
 </html>

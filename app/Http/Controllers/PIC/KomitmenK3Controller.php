@@ -293,9 +293,6 @@ class KomitmenK3Controller extends Controller
         }
     }
 
-    /**
-     * Endpoint untuk Export CSV.
-     */
     public function export(Request $request)
     {
         $user = Auth::user();
@@ -305,66 +302,26 @@ class KomitmenK3Controller extends Controller
         }
 
         $sectionId = $user->section_id;
-        $bulan = $request->input('bulan', date('n'));
-        $tahun = $request->input('tahun', date('Y'));
+
+        // Ensure month and year are valid
+        $bulan = $request->input('bulan');
+        if (empty($bulan))
+            $bulan = date('n');
+
+        $tahun = $request->input('tahun');
+        if (empty($tahun))
+            $tahun = date('Y');
+
         $search = $request->input('search');
 
-        // Query data yang difilter
-        $query = KomitmenK3::with('user.section')
-            ->whereHas('user', function ($q) use ($sectionId) {
-                $q->where('section_id', $sectionId);
-            })
-            ->whereMonth('created_at', $bulan)
-            ->whereYear('created_at', $tahun);
-
-        if ($search) {
-            $query->where(function ($q) use ($search, $sectionId) {
-                $q->where('komitmen', 'like', "%{$search}%");
-
-                $q->orWhereHas('user', function ($sub) use ($search, $sectionId) {
-                    $sub->where('section_id', $sectionId)
-                        ->where(function ($subsub) use ($search) {
-                            $subsub->where('nama', 'like', "%{$search}%")
-                                ->orWhere('nip', 'like', "%{$search}%");
-                        });
-                });
-            });
-        }
-
-        $data = $query->latest('updated_at')->get();
-
-        // Logika Export CSV
         $sectionName = $user->section->section ?? 'All';
-        $bulanName = date('F', mktime(0, 0, 0, $bulan, 10));
-        $filename = "komitmen_k3_{$sectionName}_{$bulanName}_{$tahun}_" . date('Ymd_His') . ".csv";
+        $bulanName = date('F', mktime(0, 0, 0, $bulan ?? 1, 10)); // Safe fallback
+        $filename = "komitmen_k3_{$sectionName}_{$bulanName}_{$tahun}_" . date('Ymd_His') . ".xlsx";
 
-        $headers = [
-            "Content-type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0"
-        ];
-
-        $callback = function () use ($data) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['NIP', 'Nama', 'Section', 'Departemen', 'Komitmen', 'Status', 'Tanggal Update']); // Header CSV
-
-            foreach ($data as $komitmen) {
-                fputcsv($file, [
-                    $komitmen->user->nip ?? 'N/A',
-                    $komitmen->user->nama ?? 'N/A',
-                    $komitmen->user->section->section ?? 'N/A',
-                    $komitmen->user->section->department ?? 'N/A',
-                    $komitmen->komitmen ?? 'Belum ada komitmen',
-                    $komitmen->status,
-                    $komitmen->updated_at ? $komitmen->updated_at->format('d/m/Y H:i') : 'N/A',
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\KomitmenK3Export($sectionId, $bulan, $tahun, $search),
+            $filename
+        );
     }
 
 
@@ -557,17 +514,13 @@ class KomitmenK3Controller extends Controller
 
     private function uploadBuktiK3($file, $userId)
     {
-        $dir = public_path('storage/komitmen_k3_bukti');
-
-        if (!file_exists($dir)) {
-            mkdir($dir, 0775, true);
-        }
-
+        // Gunakan Storage facade agar konsisten dengan filesystems.php
         $filename = 'k3_' . $userId . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $file->move($dir, $filename);
 
-        // SIMPAN PATH RELATIF (INI PENTING)
-        return 'komitmen_k3_bukti/' . $filename;
+        // Simpan ke storage/app/public/komitmen_k3_bukti
+        $path = $file->storeAs('komitmen_k3_bukti', $filename, 'public');
+
+        return $path;
     }
 
     private function deleteBuktiK3($path)
