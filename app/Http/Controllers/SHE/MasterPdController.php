@@ -32,19 +32,19 @@ class MasterPdController extends Controller
 
         // Ambil semua data PD
         // DIUBAH: Variabel diubah dari $pfs menjadi $pds
-        $pds = $query->orderBy('nama_pd')->get(); 
+        $pds = $query->orderBy('nama_pd')->get();
 
         // Ambil permission user login untuk menu /she/master/pd
         $permission = DB::table('tb_user_permissions as up')
             ->join('tb_menus as m', 'up.menu_id', '=', 'm.id')
             ->where('up.user_id', Auth::id())
             // DIUBAH: URL menu disesuaikan /pf -> /pd
-            ->where('m.url', $this->menuUrl) 
+            ->where('m.url', $this->menuUrl)
             ->select('up.can_edit', 'up.can_delete')
             ->first();
 
         // DIUBAH: Mengembalikan view yang sudah disesuaikan (masterpf -> masterpd)
-        return view('she.masterpd', compact('pds', 'permission'));
+        return view('SHE.masterpd', compact('pds', 'permission'));
     }
 
     /**
@@ -64,7 +64,7 @@ class MasterPdController extends Controller
             // DIUBAH: Pesan error (Pelanggaran Fisik -> Pelanggaran Dokumen)
             return redirect($this->menuUrl)->with('error', 'Anda tidak punya izin menambah data Pelanggaran Dokumen.');
         }
-        
+
         // 2. Validasi input
         $validator = Validator::make($request->all(), [
             // DIUBAH: Kolom dan tabel disesuaikan ke nama_pd & tb_master_pd
@@ -72,7 +72,7 @@ class MasterPdController extends Controller
         ], [
             // DIUBAH: Pesan validasi
             'nama_pd.required' => 'Kolom Pelanggaran Dokumen wajib diisi.',
-            'nama_pd.unique'   => 'Pelanggaran Dokumen ini sudah terdaftar.',
+            'nama_pd.unique' => 'Pelanggaran Dokumen ini sudah terdaftar.',
         ]);
 
         if ($validator->fails()) {
@@ -111,11 +111,11 @@ class MasterPdController extends Controller
         // 2. Validasi input: pastikan unique kecuali dirinya sendiri
         $validator = Validator::make($request->all(), [
             // DIUBAH: Kolom dan tabel disesuaikan ke nama_pd & tb_master_pd
-            'nama_pd' => 'required|string|max:255|unique:tb_master_pd,nama_pd,'.$id,
+            'nama_pd' => 'required|string|max:255|unique:tb_master_pd,nama_pd,' . $id,
         ], [
             // DIUBAH: Pesan validasi
             'nama_pd.required' => 'Kolom Pelanggaran Dokumen wajib diisi.',
-            'nama_pd.unique'   => 'Pelanggaran Dokumen ini sudah terdaftar.',
+            'nama_pd.unique' => 'Pelanggaran Dokumen ini sudah terdaftar.',
         ]);
 
         if ($validator->fails()) {

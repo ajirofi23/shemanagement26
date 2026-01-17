@@ -41,7 +41,7 @@ class ManagementMenuController extends Controller
             ->select('up.can_edit', 'up.can_delete')
             ->first();
 
-        return view('it.management-menu', compact('menus', 'permission'));
+        return view('IT.management-menu', compact('menus', 'permission'));
     }
 
     /**

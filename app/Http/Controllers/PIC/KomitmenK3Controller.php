@@ -22,24 +22,24 @@ class KomitmenK3Controller extends Controller
     public function index(Request $request)
     {
         $user = Auth::user()->load('section');
-        
+
         if (!$user) {
             // Ini biasanya redirect ke rute login yang sudah pasti ada
-            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.'); 
+            return redirect()->route('login')->with('error', 'Anda harus login untuk mengakses halaman ini.');
         }
 
         // --- Inisialisasi Filter Waktu ---
         $bulan = $request->input('bulan', date('n')); // default bulan saat ini (numeric)
         $tahun = $request->input('tahun', date('Y')); // default tahun saat ini
-        
+
         // Cek status sinkronisasi terakhir untuk Section ini
         $canSync = true;
         $lastSyncDate = null;
-        
+
         // Mencari data komitmen pertama yang disinkronkan di bulan/tahun yang difilter
         $latestKomitmen = KomitmenK3::whereHas('user', function ($q) use ($user) {
-                $q->where('section_id', $user->section_id);
-            })
+            $q->where('section_id', $user->section_id);
+        })
             ->whereYear('created_at', $tahun)
             ->whereMonth('created_at', $bulan)
             ->latest('created_at')
@@ -50,7 +50,7 @@ class KomitmenK3Controller extends Controller
             $lastSyncDate = Carbon::parse($latestKomitmen->created_at)->format('d F Y');
             // Jika bulan dan tahun yang difilter adalah bulan dan tahun sekarang, disable sync
             if ($bulan == date('n') && $tahun == date('Y')) {
-                 $canSync = false;
+                $canSync = false;
             }
         }
         // ------------------------------------
@@ -60,17 +60,17 @@ class KomitmenK3Controller extends Controller
             $userKomitmen = null;
             $isUploaded = false;
             if (is_null($user->section)) {
-                $user->section = (object)['section' => 'N/A', 'department' => 'N/A'];
+                $user->section = (object) ['section' => 'N/A', 'department' => 'N/A'];
             }
-            return view('pic.komitmenk3', compact('komitmens', 'user', 'userKomitmen', 'isUploaded', 'canSync', 'lastSyncDate'))
-                   ->with('warning', 'Akun Anda tidak terasosiasi dengan Section manapun. Data tidak dapat ditampilkan.');
+            return view('PIC.komitmenk3', compact('komitmens', 'user', 'userKomitmen', 'isUploaded', 'canSync', 'lastSyncDate'))
+                ->with('warning', 'Akun Anda tidak terasosiasi dengan Section manapun. Data tidak dapat ditampilkan.');
         }
 
         $sectionId = $user->section_id;
 
         // 2. Query Komitmen K3 (Filter berdasarkan Section, Bulan, dan Tahun)
         $query = KomitmenK3::query();
-        
+
         // Filter hanya untuk user di section yang sama
         $query->whereHas('user', function ($q) use ($sectionId) {
             $q->where('section_id', $sectionId);
@@ -92,30 +92,30 @@ class KomitmenK3Controller extends Controller
             $query->where(function ($q) use ($search, $sectionId) {
                 // 1. Cari di kolom komitmen
                 $q->where('komitmen', 'like', "%{$search}%");
-                
+
                 // 2. Cari di kolom user (nama atau nip) di section yang sama
                 $q->orWhereHas('user', function ($sub) use ($search, $sectionId) {
-                    $sub->where('section_id', $sectionId) 
+                    $sub->where('section_id', $sectionId)
                         ->where(function ($subsub) use ($search) {
                             $subsub->where('nama', 'like', "%{$search}%")
-                                   ->orWhere('nip', 'like', "%{$search}%");
+                                ->orWhere('nip', 'like', "%{$search}%");
                         });
                 });
             });
         }
-        
+
         // Dapatkan data Komitmen K3 dan paginasi
-        $komitmens = $query->latest('updated_at')->paginate(10)->withQueryString(); 
+        $komitmens = $query->latest('updated_at')->paginate(10)->withQueryString();
 
         // 3. Dapatkan Komitmen K3 milik user yang login (untuk modal upload/edit)
         $userKomitmen = KomitmenK3::where('user_id', $user->id)
-                                  ->whereMonth('created_at', $bulan)
-                                  ->whereYear('created_at', $tahun)
-                                  ->first();
-                                  
+            ->whereMonth('created_at', $bulan)
+            ->whereYear('created_at', $tahun)
+            ->first();
+
         $isUploaded = $userKomitmen && $userKomitmen->bukti;
 
-        return view('pic.komitmenk3', compact('komitmens', 'user', 'userKomitmen', 'isUploaded', 'canSync', 'lastSyncDate'));
+        return view('PIC.komitmenk3', compact('komitmens', 'user', 'userKomitmen', 'isUploaded', 'canSync', 'lastSyncDate'));
     }
 
     /**
@@ -136,19 +136,19 @@ class KomitmenK3Controller extends Controller
 
         // Cek apakah sinkronisasi sudah dilakukan untuk bulan ini (jika ada data komitmen)
         $isSynced = KomitmenK3::whereHas('user', function ($q) use ($sectionId) {
-                $q->where('section_id', $sectionId);
-            })
+            $q->where('section_id', $sectionId);
+        })
             ->whereYear('created_at', $tahunSaatIni)
             ->whereMonth('created_at', $bulanSaatIni)
             ->exists();
-            
+
         if ($isSynced) {
-             return redirect()->back()->with(['sync_message' => 'Sinkronisasi untuk bulan ini sudah dilakukan sebelumnya.', 'sync_status' => 'warning']);
+            return redirect()->back()->with(['sync_message' => 'Sinkronisasi untuk bulan ini sudah dilakukan sebelumnya.', 'sync_status' => 'warning']);
         }
 
         try {
             DB::beginTransaction();
-            
+
             // 1. Ambil semua User dalam Section PIC yang login
             $usersToSync = User::where('section_id', $sectionId)->get();
 
@@ -164,17 +164,17 @@ class KomitmenK3Controller extends Controller
 
                 // Hanya proses jika belum ada di bulan ini 
                 if (
-                    !$komitmen->exists || 
-                    Carbon::parse($komitmen->created_at)->month != $bulanSaatIni || 
+                    !$komitmen->exists ||
+                    Carbon::parse($komitmen->created_at)->month != $bulanSaatIni ||
                     Carbon::parse($komitmen->created_at)->year != $tahunSaatIni
                 ) {
                     // Buat entri baru untuk periode ini
                     KomitmenK3::create([
                         'user_id' => $u->id,
-                        'komitmen' => null, 
-                        'bukti' => null,     
+                        'komitmen' => null,
+                        'bukti' => null,
                         'status' => 'Belum Upload',
-                        'created_at' => $now, 
+                        'created_at' => $now,
                         'updated_at' => $now,
                     ]);
                     $syncedCount++;
@@ -183,7 +183,7 @@ class KomitmenK3Controller extends Controller
 
             DB::commit();
             // ⭐ PENGGANTIAN route() ke url() ⭐
-            return redirect(url('/pic/komitmenk3')) 
+            return redirect(url('/pic/komitmenk3'))
                 ->with(['sync_message' => "Berhasil menarik data. $syncedCount karyawan dari section Anda sudah dimasukkan ke daftar Komitmen K3.", 'sync_status' => 'success']);
 
         } catch (Exception $e) {
@@ -199,16 +199,16 @@ class KomitmenK3Controller extends Controller
     {
         // Validasi
         $request->validate([
-            'user_id' => 'required|exists:tb_user,id', 
+            'user_id' => 'required|exists:tb_user,id',
             'komitmen' => 'required|string|max:1000',
-            'bukti' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
+            'bukti' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
-        
+
         // Cek apakah sudah ada komitmen untuk user ini di bulan dan tahun saat ini
         $existingKomitmen = KomitmenK3::where('user_id', $request->user_id)
-                                     ->whereMonth('created_at', date('n'))
-                                     ->whereYear('created_at', date('Y'))
-                                     ->first();
+            ->whereMonth('created_at', date('n'))
+            ->whereYear('created_at', date('Y'))
+            ->first();
 
         if ($existingKomitmen) {
             // Jika sudah ada entri, alihkan ke update
@@ -217,9 +217,9 @@ class KomitmenK3Controller extends Controller
 
         try {
             DB::beginTransaction();
-            
+
             // 1. Upload File Bukti
-           $path = $this->uploadBuktiK3($request->file('bukti'), $request->user_id);
+            $path = $this->uploadBuktiK3($request->file('bukti'), $request->user_id);
 
             // 2. Simpan Data ke tb_komitment_k3
             KomitmenK3::create([
@@ -246,16 +246,16 @@ class KomitmenK3Controller extends Controller
     public function update(Request $request, $id)
     {
         $komitmen = KomitmenK3::findOrFail($id);
-        
+
         $user = Auth::user();
 
-// Ambil user pemilik komitmen
-$targetUser = $komitmen->user;
+        // Ambil user pemilik komitmen
+        $targetUser = $komitmen->user;
 
-// Validasi: harus satu section
-if (!$targetUser || $targetUser->section_id !== $user->section_id) {
-    return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengedit data ini.');
-}
+        // Validasi: harus satu section
+        if (!$targetUser || $targetUser->section_id !== $user->section_id) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengedit data ini.');
+        }
 
         $rules = [
             'komitmen' => 'required|string|max:1000',
@@ -273,14 +273,14 @@ if (!$targetUser || $targetUser->section_id !== $user->section_id) {
             if ($request->hasFile('bukti')) {
                 // Hapus bukti lama (jika ada)
                 if ($komitmen->bukti) {
-    $this->deleteBuktiK3($komitmen->bukti);
-}
+                    $this->deleteBuktiK3($komitmen->bukti);
+                }
 
-$path = $this->uploadBuktiK3($request->file('bukti'), $komitmen->user_id);
-$komitmen->bukti = $path;
-                $komitmen->status = 'Sudah Upload'; 
+                $path = $this->uploadBuktiK3($request->file('bukti'), $komitmen->user_id);
+                $komitmen->bukti = $path;
+                $komitmen->status = 'Sudah Upload';
             }
-            
+
             $komitmen->save();
             DB::commit();
 
@@ -299,9 +299,9 @@ $komitmen->bukti = $path;
     public function export(Request $request)
     {
         $user = Auth::user();
-        
+
         if (!$user || !$user->section_id) {
-             return redirect()->back()->with('error', 'Gagal export: Anda tidak terasosiasi dengan Section manapun.');
+            return redirect()->back()->with('error', 'Gagal export: Anda tidak terasosiasi dengan Section manapun.');
         }
 
         $sectionId = $user->section_id;
@@ -318,19 +318,19 @@ $komitmen->bukti = $path;
             ->whereYear('created_at', $tahun);
 
         if ($search) {
-             $query->where(function ($q) use ($search, $sectionId) {
+            $query->where(function ($q) use ($search, $sectionId) {
                 $q->where('komitmen', 'like', "%{$search}%");
-                
+
                 $q->orWhereHas('user', function ($sub) use ($search, $sectionId) {
                     $sub->where('section_id', $sectionId)
                         ->where(function ($subsub) use ($search) {
                             $subsub->where('nama', 'like', "%{$search}%")
-                                   ->orWhere('nip', 'like', "%{$search}%");
+                                ->orWhere('nip', 'like', "%{$search}%");
                         });
                 });
             });
         }
-            
+
         $data = $query->latest('updated_at')->get();
 
         // Logika Export CSV
@@ -339,17 +339,17 @@ $komitmen->bukti = $path;
         $filename = "komitmen_k3_{$sectionName}_{$bulanName}_{$tahun}_" . date('Ymd_His') . ".csv";
 
         $headers = [
-            "Content-type"        => "text/csv",
+            "Content-type" => "text/csv",
             "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
         ];
-        
-        $callback = function() use ($data) {
+
+        $callback = function () use ($data) {
             $file = fopen('php://output', 'w');
             fputcsv($file, ['NIP', 'Nama', 'Section', 'Departemen', 'Komitmen', 'Status', 'Tanggal Update']); // Header CSV
-                
+
             foreach ($data as $komitmen) {
                 fputcsv($file, [
                     $komitmen->user->nip ?? 'N/A',
@@ -370,11 +370,11 @@ $komitmen->bukti = $path;
 
     public function getlaporank3(Request $request)
     {
-        $bulan     = $request->input('bulan', date('m'));
-        $tahun     = $request->input('tahun', date('Y'));
+        $bulan = $request->input('bulan', date('m'));
+        $tahun = $request->input('tahun', date('Y'));
         $monthYear = $request->input('monthYear');
-        $search    = $request->input('search');
-    
+        $search = $request->input('search');
+
         if ($monthYear) {
             try {
                 [$tahun, $bulan] = explode('-', $monthYear);
@@ -383,71 +383,71 @@ $komitmen->bukti = $path;
                 $tahun = date('Y');
             }
         }
-    
+
         // 🎯 TARGET PERSENTASE
         $targetPersen = 70;
-    
+
         $query = KomitmenK3::with(['user.section'])
             ->whereYear('created_at', $tahun)
             ->whereMonth('created_at', $bulan);
-    
+
         if ($search) {
             $query->whereHas('user.section', function ($q) use ($search) {
                 $q->where('section', 'like', "%{$search}%");
             });
         }
-    
+
         $dataK3 = $query->get();
-    
+
         $summary = $dataK3
-            ->groupBy(fn ($item) => optional($item->user->section)->section ?? 'Unknown')
+            ->groupBy(fn($item) => optional($item->user->section)->section ?? 'Unknown')
             ->map(function ($group, $sectionName) use ($bulan, $tahun, $targetPersen) {
-    
+
                 $sectionId = optional($group->first()->user->section)->id;
-    
+
                 // ✅ TARGET = USER TERDAFTAR DI tb_komitment_k3 (DISTINCT)
                 $totalUserTarget = KomitmenK3::whereYear('created_at', $tahun)
                     ->whereMonth('created_at', $bulan)
                     ->whereHas('user', function ($q) use ($sectionId) {
-                        $q->where('section_id', $sectionId);
-                    })
+                    $q->where('section_id', $sectionId);
+                })
                     ->distinct('user_id')
                     ->count('user_id');
-    
+
                 // ✅ AKTUAL = USER SUDAH UPLOAD
                 $totalUserAktual = $group
                     ->where('status', 'Sudah Upload')
                     ->unique('user_id')
                     ->count();
-    
+
                 $persentaseAktual = $totalUserTarget > 0
                     ? round(($totalUserAktual / $totalUserTarget) * 100, 1)
                     : 0;
-    
+
                 return [
-                    'section_id'        => $sectionId,
-                    'section_name'      => $sectionName,
-                    'periode'           => Carbon::create($tahun, $bulan, 1)->format('F Y'),
+                    'section_id' => $sectionId,
+                    'section_name' => $sectionName,
+                    'periode' => Carbon::create($tahun, $bulan, 1)->format('F Y'),
                     'total_user_target' => $totalUserTarget,
                     'total_user_aktual' => $totalUserAktual,
                     'persentase_aktual' => $persentaseAktual,
-                    'target_persen'     => $targetPersen,
-                    'status_target'     => $persentaseAktual >= $targetPersen ? 'Tercapai' : 'Belum Tercapai',
-                    'total_records'     => $group->count(),
+                    'target_persen' => $targetPersen,
+                    'status_target' => $persentaseAktual >= $targetPersen ? 'Tercapai' : 'Belum Tercapai',
+                    'total_records' => $group->count(),
                 ];
             })
             ->sortBy('section_name');
-    
+
         $totalSummary = [
-            'total_target'     => $summary->sum('total_user_target'),
-            'total_aktual'     => $summary->sum('total_user_aktual'),
+            'total_target' => $summary->sum('total_user_target'),
+            'total_aktual' => $summary->sum('total_user_aktual'),
             'total_persentase' => $summary->sum('total_user_target') > 0
                 ? round(($summary->sum('total_user_aktual') / $summary->sum('total_user_target')) * 100, 1)
                 : 0,
-            'total_sections'   => $summary->count(),
-            'periode'          => Carbon::create($tahun, $bulan, 1)->format('F Y'),
+            'total_sections' => $summary->count(),
+            'periode' => Carbon::create($tahun, $bulan, 1)->format('F Y'),
         ];
-    
+
         return view('SHE.komitmenk3', compact(
             'summary',
             'totalSummary',
@@ -458,8 +458,8 @@ $komitmen->bukti = $path;
             'targetPersen'
         ));
     }
-    
-    
+
+
 
 
     public function getSectionDetail($sectionId, Request $request)
@@ -468,77 +468,77 @@ $komitmen->bukti = $path;
         $tahun = $request->tahun;
         $monthYear = $request->monthYear;
         $search = $request->search;
-        
+
         if ($monthYear) {
             list($tahun, $bulan) = explode('-', $monthYear);
         }
-        
+
         $sectionUser = User::where('section_id', $sectionId)->first();
         $sectionName = $sectionUser ? ($sectionUser->section ?? 'Section ' . $sectionId) : 'Section ' . $sectionId;
-        
+
         $query = KomitmenK3::query();
-        
+
         $query->whereHas('user', function ($q) use ($sectionId) {
             $q->where('section_id', $sectionId);
         });
-        
+
         if ($bulan) {
             $query->whereMonth('created_at', $bulan);
         }
         if ($tahun) {
             $query->whereYear('created_at', $tahun);
         }
-        
+
         $query->with(['user']);
-        
+
         if ($search) {
             $query->where(function ($q) use ($search, $sectionId) {
                 $q->where('komitmen', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($sub) use ($search, $sectionId) {
-                      $sub->where('section_id', $sectionId) 
-                          ->where(function ($subsub) use ($search) {
-                              $subsub->where('nama', 'like', "%{$search}%")
-                                     ->orWhere('nip', 'like', "%{$search}%");
-                          });
-                  });
+                    ->orWhereHas('user', function ($sub) use ($search, $sectionId) {
+                        $sub->where('section_id', $sectionId)
+                            ->where(function ($subsub) use ($search) {
+                                $subsub->where('nama', 'like', "%{$search}%")
+                                    ->orWhere('nip', 'like', "%{$search}%");
+                            });
+                    });
             });
         }
-        
+
         $komitmens = $query->latest('updated_at')->paginate(10)->withQueryString();
-        
+
         $totalUserTarget = User::where('section_id', $sectionId)
-                              ->where('is_active', 1)
-                              ->when($search, function($q) use ($search) {
-                                  $q->where(function($query) use ($search) {
-                                      $query->where('nama', 'like', "%{$search}%")
-                                            ->orWhere('nip', 'like', "%{$search}%");
-                                  });
-                              })
-                              ->count();
-        
+            ->where('is_active', 1)
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($query) use ($search) {
+                    $query->where('nama', 'like', "%{$search}%")
+                        ->orWhere('nip', 'like', "%{$search}%");
+                });
+            })
+            ->count();
+
         $totalUserAktualQuery = KomitmenK3::whereHas('user', function ($q) use ($sectionId, $search) {
             $q->where('section_id', $sectionId);
             if ($search) {
-                $q->where(function($sub) use ($search) {
+                $q->where(function ($sub) use ($search) {
                     $sub->where('nama', 'like', "%{$search}%")
                         ->orWhere('nip', 'like', "%{$search}%");
                 });
             }
         });
-        
+
         if ($bulan) {
             $totalUserAktualQuery->whereMonth('created_at', $bulan);
         }
         if ($tahun) {
             $totalUserAktualQuery->whereYear('created_at', $tahun);
         }
-        
+
         $totalUserAktual = $totalUserAktualQuery->distinct('user_id')->count('user_id');
-        
-        $persentaseAktual = $totalUserTarget > 0 
-            ? round(($totalUserAktual / $totalUserTarget) * 100, 2) 
+
+        $persentaseAktual = $totalUserTarget > 0
+            ? round(($totalUserAktual / $totalUserTarget) * 100, 2)
             : 0;
-        
+
         return view('SHE.komitmenk3_detail', [
             'sectionId' => $sectionId,
             'sectionName' => $sectionName,
@@ -556,31 +556,32 @@ $komitmen->bukti = $path;
     }
 
     private function uploadBuktiK3($file, $userId)
-{
-    $dir = public_path('storage/komitmen_k3_bukti');
+    {
+        $dir = public_path('storage/komitmen_k3_bukti');
 
-    if (!file_exists($dir)) {
-        mkdir($dir, 0775, true);
+        if (!file_exists($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        $filename = 'k3_' . $userId . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $file->move($dir, $filename);
+
+        // SIMPAN PATH RELATIF (INI PENTING)
+        return 'komitmen_k3_bukti/' . $filename;
     }
 
-    $filename = 'k3_' . $userId . '_' . time() . '.' . $file->getClientOriginalExtension();
-    $file->move($dir, $filename);
+    private function deleteBuktiK3($path)
+    {
+        if (!$path)
+            return;
 
-    // SIMPAN PATH RELATIF (INI PENTING)
-    return 'komitmen_k3_bukti/' . $filename;
-}
-
-private function deleteBuktiK3($path)
-{
-    if (!$path) return;
-
-    $fullPath = public_path('storage/' . $path);
-    if (file_exists($fullPath)) {
-        unlink($fullPath);
+        $fullPath = public_path('storage/' . $path);
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
     }
-}
 
 
 
-    
+
 }

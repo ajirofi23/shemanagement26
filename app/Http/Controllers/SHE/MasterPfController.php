@@ -32,19 +32,19 @@ class MasterPfController extends Controller
 
         // Ambil semua data PF
         // DIUBAH: Variabel diubah dari $pbs menjadi $pfs
-        $pfs = $query->orderBy('nama_pf')->get(); 
+        $pfs = $query->orderBy('nama_pf')->get();
 
         // Ambil permission user login untuk menu /she/master/pf
         $permission = DB::table('tb_user_permissions as up')
             ->join('tb_menus as m', 'up.menu_id', '=', 'm.id')
             ->where('up.user_id', Auth::id())
             // DIUBAH: URL menu disesuaikan /pb -> /pf
-            ->where('m.url', $this->menuUrl) 
+            ->where('m.url', $this->menuUrl)
             ->select('up.can_edit', 'up.can_delete')
             ->first();
 
         // DIUBAH: Mengembalikan view yang sudah disesuaikan
-        return view('she.masterpf', compact('pfs', 'permission'));
+        return view('SHE.masterpf', compact('pfs', 'permission'));
     }
 
     /**
@@ -64,7 +64,7 @@ class MasterPfController extends Controller
             // DIUBAH: Pesan error
             return redirect($this->menuUrl)->with('error', 'Anda tidak punya izin menambah data Pelanggaran Fisik.');
         }
-        
+
         // 2. Validasi input
         $validator = Validator::make($request->all(), [
             // DIUBAH: Kolom dan tabel disesuaikan ke nama_pf & tb_master_pf
@@ -72,7 +72,7 @@ class MasterPfController extends Controller
         ], [
             // DIUBAH: Pesan validasi
             'nama_pf.required' => 'Kolom Pelanggaran Fisik wajib diisi.',
-            'nama_pf.unique'   => 'Pelanggaran Fisik ini sudah terdaftar.',
+            'nama_pf.unique' => 'Pelanggaran Fisik ini sudah terdaftar.',
         ]);
 
         if ($validator->fails()) {
@@ -111,11 +111,11 @@ class MasterPfController extends Controller
         // 2. Validasi input: pastikan unique kecuali dirinya sendiri
         $validator = Validator::make($request->all(), [
             // DIUBAH: Kolom dan tabel disesuaikan ke nama_pf & tb_master_pf
-            'nama_pf' => 'required|string|max:255|unique:tb_master_pf,nama_pf,'.$id,
+            'nama_pf' => 'required|string|max:255|unique:tb_master_pf,nama_pf,' . $id,
         ], [
             // DIUBAH: Pesan validasi
             'nama_pf.required' => 'Kolom Pelanggaran Fisik wajib diisi.',
-            'nama_pf.unique'   => 'Pelanggaran Fisik ini sudah terdaftar.',
+            'nama_pf.unique' => 'Pelanggaran Fisik ini sudah terdaftar.',
         ]);
 
         if ($validator->fails()) {

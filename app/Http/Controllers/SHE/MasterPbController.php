@@ -31,19 +31,19 @@ class MasterPbController extends Controller
 
         // Ambil semua data PB
         // Variabel diubah dari $ktas menjadi $pbs
-        $pbs = $query->orderBy('nama_pb')->get(); 
+        $pbs = $query->orderBy('nama_pb')->get();
 
         // Ambil permission user login untuk menu /she/master/pb
         $permission = DB::table('tb_user_permissions as up')
             ->join('tb_menus as m', 'up.menu_id', '=', 'm.id')
             ->where('up.user_id', Auth::id())
             // URL menu disesuaikan
-            ->where('m.url', $this->menuUrl) 
+            ->where('m.url', $this->menuUrl)
             ->select('up.can_edit', 'up.can_delete')
             ->first();
 
         // Mengembalikan view yang sudah disesuaikan
-        return view('she.masterpb', compact('pbs', 'permission'));
+        return view('SHE.masterpb', compact('pbs', 'permission'));
     }
 
     /**
@@ -62,14 +62,14 @@ class MasterPbController extends Controller
         if (!($permission && $permission->can_edit)) {
             return redirect($this->menuUrl)->with('error', 'Anda tidak punya izin menambah data Potensi Bahaya.');
         }
-        
+
         // 2. Validasi input
         $validator = Validator::make($request->all(), [
             // Kolom dan tabel disesuaikan ke nama_pb & tb_master_pb
             'nama_pb' => 'required|string|max:255|unique:tb_master_pb,nama_pb',
         ], [
             'nama_pb.required' => 'Kolom Potensi Bahaya wajib diisi.',
-            'nama_pb.unique'   => 'Potensi Bahaya ini sudah terdaftar.',
+            'nama_pb.unique' => 'Potensi Bahaya ini sudah terdaftar.',
         ]);
 
         if ($validator->fails()) {
@@ -105,10 +105,10 @@ class MasterPbController extends Controller
         // 2. Validasi input: pastikan unique kecuali dirinya sendiri
         $validator = Validator::make($request->all(), [
             // Kolom dan tabel disesuaikan ke nama_pb & tb_master_pb
-            'nama_pb' => 'required|string|max:255|unique:tb_master_pb,nama_pb,'.$id,
+            'nama_pb' => 'required|string|max:255|unique:tb_master_pb,nama_pb,' . $id,
         ], [
             'nama_pb.required' => 'Kolom Potensi Bahaya wajib diisi.',
-            'nama_pb.unique'   => 'Potensi Bahaya ini sudah terdaftar.',
+            'nama_pb.unique' => 'Potensi Bahaya ini sudah terdaftar.',
         ]);
 
         if ($validator->fails()) {
