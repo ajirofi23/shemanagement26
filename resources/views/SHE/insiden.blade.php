@@ -1,4 +1,3 @@
-@include('layout.header')
 @extends(($isPICAccess || $isManagerAccess) ? 'layout.picsidebar' : 'layout.sidebar')
 
 @section('content')

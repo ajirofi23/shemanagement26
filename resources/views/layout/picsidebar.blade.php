@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <span class="app-title">{{ $title ?? 'PIC – PT AICC' }}</span>
+    <title>{{ $title ?? 'PIC – PT AICC' }}</title>
 
-
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -465,6 +465,9 @@
     <div class="main-content">
         @yield('content')
 
+        <footer class="mt-4 text-center text-muted small">
+            &copy; 2026 Safecore Team - HorizonU. All Rights Reserved.
+        </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

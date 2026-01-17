@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHE Dashboard – PT AICC</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -229,7 +230,8 @@
         <ul class="menu">
             {{-- DASHBOARD --}}
             <li>
-                <a href="{{ url('/manager/dashboard') }}" class="{{ request()->is('manager/dashboard') ? 'active' : '' }}">
+                <a href="{{ url('/manager/dashboard') }}"
+                    class="{{ request()->is('manager/dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i>
                     <span>Dashboard</span>
                 </a>
@@ -307,6 +309,10 @@
 
     <div class="main-content">
         @yield('content')
+
+        <footer class="mt-4 text-center text-muted small">
+            &copy; 2026 Safecore Team - HorizonU. All Rights Reserved.
+        </footer>
     </div>
 
     {{-- MODAL HARUS DI SINI --}}

@@ -187,30 +187,34 @@
                                     <td class="ps-3 fw-bold text-secondary">{{ $loop->iteration }}</td>
                                     <td>
                                         @if($laporan->ptas->count() > 0)
-                                            @foreach($laporan->ptas as $pta)
-                                                <span
-                                                    class="badge bg-light text-dark border badge-pill mb-1">{{ $pta->nama_pta }}</span>
-                                            @endforeach
+                                            <div class="d-flex flex-column align-items-start gap-1">
+                                                @foreach($laporan->ptas as $pta)
+                                                    <span class="badge bg-light text-dark border badge-pill">{{ $pta->nama_pta }}</span>
+                                                @endforeach
+                                            </div>
                                         @else
                                             <span class="text-muted small">N/A</span>
                                         @endif
                                     </td>
                                     <td>
                                         @if($laporan->ktas->count() > 0)
-                                            @foreach($laporan->ktas as $kta)
-                                                <span
-                                                    class="badge bg-light text-dark border badge-pill mb-1">{{ $kta->nama_kta }}</span>
-                                            @endforeach
+                                            <div class="d-flex flex-column align-items-start gap-1">
+                                                @foreach($laporan->ktas as $kta)
+                                                    <span class="badge bg-light text-dark border badge-pill">{{ $kta->nama_kta }}</span>
+                                                @endforeach
+                                            </div>
                                         @else
                                             <span class="text-muted small">N/A</span>
                                         @endif
                                     </td>
                                     <td>
                                         @if($laporan->pbs->count() > 0)
-                                            @foreach($laporan->pbs as $pb)
-                                                <span
-                                                    class="badge bg-danger-subtle text-danger border border-danger badge-pill mb-1">{{ $pb->nama_pb }}</span>
-                                            @endforeach
+                                            <div class="d-flex flex-column align-items-start gap-1">
+                                                @foreach($laporan->pbs as $pb)
+                                                    <span
+                                                        class="badge bg-danger-subtle text-danger border border-danger badge-pill">{{ $pb->nama_pb }}</span>
+                                                @endforeach
+                                            </div>
                                         @else
                                             <span class="text-muted small">N/A</span>
                                         @endif
