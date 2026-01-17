@@ -376,6 +376,13 @@
             </a>
         </li>
 
+        <li>
+            <a href="{{ url('/it/management-akses') }}"
+            class="{{ request()->is('it/management-akses*') ? 'active' : '' }}">
+                <i class="bi bi-lock"></i> <span>Management Akses</span>
+            </a>
+        </li>
+
     </ul>
 
     <div class="logout">

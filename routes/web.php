@@ -30,7 +30,8 @@ use App\Http\Controllers\Manager\ManagerSafetyRidingController;
 use App\Http\Controllers\Manager\ManagerSafetyPatrolController;
 use App\Http\Controllers\PIC\PICProgramSafetyController;
 use App\Http\Controllers\IT\ManagementMenuController;
-use App\Http\Controllers\Manager\ManagerDashboardController;    
+use App\Http\Controllers\IT\ManagementAksesController;
+use App\Http\Controllers\Manager\ManagerDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -67,19 +68,34 @@ Route::middleware('auth')->group(function () {
     Route::prefix('it')->middleware('permission')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::get('/management-user', [UserController::class, 'index']);
-        
-        // Management Menu (Menggunakan Middleware Permission)
-        Route::get('/management-menu', [ManagementMenuController::class, 'index'])->name('it.management-menu');
-        Route::post('/management-menu/store', [ManagementMenuController::class, 'store']);
-        Route::put('/management-menu/update/{id}', [ManagementMenuController::class, 'update']);
-        Route::delete('/management-menu/destroy/{id}', [ManagementMenuController::class, 'destroy']);
+
+
+    });
+    Route::prefix('it')->group(function () {
+
+        Route::get('/management-menu', [ManagementMenuController::class, 'index'])
+            ->name('it.management-menu');
+
+        Route::post('/management-menu/store', [ManagementMenuController::class, 'store'])
+            ->name('it.management-menu.store');
+
+        Route::put('/management-menu/update/{id}', [ManagementMenuController::class, 'update'])
+            ->name('it.management-menu.update');
+
+        Route::delete('/management-menu/destroy/{id}', [ManagementMenuController::class, 'destroy'])
+            ->name('it.management-menu.destroy');
+
+
+        Route::get('/management-akses', [ManagementAksesController::class, 'index']);
+        Route::post('/management-akses/store', [ManagementAksesController::class, 'store']);
     });
 
-    // Jalur akses tanpa middleware permission jika diperlukan (opsional sesuai kode awal Anda)
-    Route::prefix('it')->middleware(['auth'])->group(function () {
-        // Baris ini tetap dipertahankan sesuai permintaan Anda
-        Route::get('management-menu', [ManagementMenuController::class, 'index'])->name('it.management-menu');
-    });
+
+    // // Jalur akses tanpa middleware permission jika diperlukan (opsional sesuai kode awal Anda)
+    // Route::prefix('it')->middleware(['auth'])->group(function () {
+    //     // Baris ini tetap dipertahankan sesuai permintaan Anda
+    //     Route::get('management-menu', [ManagementMenuController::class, 'index'])->name('it.management-menu');
+    // });
 
     Route::prefix('she')->middleware('permission')->group(function () {
         Route::get('/she/master/pta', [MasterPtaController::class, 'index']);
@@ -97,7 +113,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [PicDashboardController::class, 'index']);
     });
 
-     Route::prefix('manager')->middleware('permission')->group(function () {
+    Route::prefix('manager')->middleware('permission')->group(function () {
         Route::get('/dashboard', [ManagerDashboardController::class, 'index']);
     });
 
@@ -108,13 +124,18 @@ Route::middleware('auth')->group(function () {
     Route::put('/it/management-user/update/{id}', [UserController::class, 'update']);
     Route::delete('it/management-user/destroy/{id}', [UserController::class, 'destroy']);
 
+
+
+
+
+
     // --- MASTER DATA SHE ROUTES ---
     Route::get('/she/master/pta', [MasterPtaController::class, 'index']);
     Route::post('/she/master/pta/store', [MasterPtaController::class, 'store']);
     Route::get('/she/master/pta/edit/{id}', [MasterPtaController::class, 'edit']);
     Route::put('/she/master/pta/update/{id}', [MasterPtaController::class, 'update']);
     Route::delete('/she/master/pta/destroy/{id}', [MasterPtaController::class, 'destroy']);
-   
+
     Route::get('/she/master/kta', [MasterKtaController::class, 'index']);
     Route::post('/she/master/kta/store', [MasterKtaController::class, 'store']);
     Route::get('/she/master/kta/edit/{id}', [MasterKtaController::class, 'edit']);
@@ -126,7 +147,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/she/master/pb/edit/{id}', [MasterPbController::class, 'edit']);
     Route::put('/she/master/pb/update/{id}', [MasterPbController::class, 'update']);
     Route::delete('/she/master/pb/destroy/{id}', [MasterPbController::class, 'destroy']);
-   
+
     // --- LAPORAN HYARI HATTO ---
     Route::get('/pic/laporanhyarihatto', [PicHyariHattoController::class, 'index']);
     Route::post('/pic/laporanhyarihatto/store', [PicHyariHattoController::class, 'store']);
@@ -179,7 +200,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/pic/safety-riding', [PicSafetyRidingController::class, 'index']);
     Route::put('/pic/safety-riding/upload-after/{id}', [PicSafetyRidingController::class, 'uploadAfter']);
     Route::delete('/pic/safety-riding/delete-after/{id}/{index}', [PicSafetyRidingController::class, 'deleteAfterImage']);
-   
+
     // --- INSIDEN ---
     Route::get('/she/insiden', [InsidenController::class, 'index']);
     Route::get('/she/insiden/form', [InsidenController::class, 'create']);

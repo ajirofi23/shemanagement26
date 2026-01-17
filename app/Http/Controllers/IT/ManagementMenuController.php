@@ -19,18 +19,18 @@ class ManagementMenuController extends Controller
         // Fitur Pencarian
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('menu_name', 'like', "%$search%")
-                  ->orWhere('url', 'like', "%$search%")
-                  ->orWhere('apps_group', 'like', "%$search%")
-                  ->orWhere('icon', 'like', "%$search%");
+                    ->orWhere('url', 'like', "%$search%")
+                    ->orWhere('apps_group', 'like', "%$search%")
+                    ->orWhere('icon', 'like', "%$search%");
             });
         }
 
         // Urutkan berdasarkan group aplikasi dan urutan menu
         $menus = $query->orderBy('apps_group', 'asc')
-                       ->orderBy('urutan_menu', 'asc')
-                       ->get();
+            ->orderBy('urutan_menu', 'asc')
+            ->get();
 
         // Ambil permission user login untuk akses fitur di halaman ini
         // Mengarahkan ke URL /it/management-menu
@@ -50,25 +50,23 @@ class ManagementMenuController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'urutan_menu'            => 'required|integer',
-            'menu_name'              => 'required|string|max:100',
-            'url'                    => 'required|string|max:255',
-            'parent_id'              => 'nullable|integer',
-            'icon'                   => 'nullable|string|max:100',
-            'has_extra_permissions'  => 'required|boolean',
-            'apps_group'             => 'required|string|max:50',
+            'urutan_menu' => 'required|integer',
+            'menu_name' => 'required|string|max:100',
+            'url' => 'required|string|max:255',
+            'parent_id' => 'nullable|integer',
+            'icon' => 'nullable|string|max:100',
+            'has_extra_permissions' => 'required|boolean',
+            'apps_group' => 'required|string|max:50',
         ]);
 
         DB::table('tb_menus')->insert([
-            'urutan_menu'           => $request->urutan_menu,
-            'menu_name'             => $request->menu_name,
-            'url'                   => $request->url,
-            'parent_id'             => $request->parent_id,
-            'icon'                  => $request->icon,
+            'urutan_menu' => $request->urutan_menu,
+            'menu_name' => $request->menu_name,
+            'url' => $request->url,
+            'parent_id' => $request->parent_id,
+            'icon' => $request->icon,
             'has_extra_permissions' => $request->has_extra_permissions,
-            'apps_group'            => $request->apps_group,
-            'created_at'            => now(),
-            'updated_at'            => now(),
+            'apps_group' => $request->apps_group,
         ]);
 
         return redirect('/it/management-menu')->with('success', 'Menu baru berhasil ditambahkan.');
@@ -92,24 +90,24 @@ class ManagementMenuController extends Controller
         }
 
         $request->validate([
-            'urutan_menu'            => 'required|integer',
-            'menu_name'              => 'required|string|max:100',
-            'url'                    => 'required|string|max:255',
-            'parent_id'              => 'nullable|integer',
-            'icon'                   => 'nullable|string|max:100',
-            'has_extra_permissions'  => 'required|boolean',
-            'apps_group'             => 'required|string|max:50',
+            'urutan_menu' => 'required|integer',
+            'menu_name' => 'required|string|max:100',
+            'url' => 'required|string|max:255',
+            'parent_id' => 'nullable|integer',
+            'icon' => 'nullable|string|max:100',
+            'has_extra_permissions' => 'required|boolean',
+            'apps_group' => 'required|string|max:50',
         ]);
 
         DB::table('tb_menus')->where('id', $id)->update([
-            'urutan_menu'           => $request->urutan_menu,
-            'menu_name'             => $request->menu_name,
-            'url'                   => $request->url,
-            'parent_id'             => $request->parent_id,
-            'icon'                  => $request->icon,
+            'urutan_menu' => $request->urutan_menu,
+            'menu_name' => $request->menu_name,
+            'url' => $request->url,
+            'parent_id' => $request->parent_id,
+            'icon' => $request->icon,
             'has_extra_permissions' => $request->has_extra_permissions,
-            'apps_group'            => $request->apps_group,
-            'updated_at'            => now(),
+            'apps_group' => $request->apps_group,
+            'updated_at' => now(),
         ]);
 
         return redirect('/it/management-menu')->with('success', 'Menu berhasil diperbarui.');
