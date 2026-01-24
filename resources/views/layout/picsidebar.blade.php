@@ -439,7 +439,7 @@
             {{-- PROGRAM SAFETY --}}
             <li>
                 <a href="{{ url('/pic/programsafety') }}"
-                    class="{{ request()->is('manager/programsafety*') ? 'active' : '' }}">
+                    class="{{ request()->is('pic/programsafety*') ? 'active' : '' }}">
                     <i class="bi bi-shield-check"></i>
                     <span>Program Safety</span>
                 </a>

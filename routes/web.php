@@ -65,211 +65,185 @@ Route::middleware('auth')->group(function () {
     | IT ROUTES (Login + Permission Required)
     |--------------------------------------------------------------------------
     */
+    /*
+    |--------------------------------------------------------------------------
+    | IT ROUTES
+    |--------------------------------------------------------------------------
+    */
     Route::prefix('it')->middleware('permission')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::get('/management-user', [UserController::class, 'index']);
+        Route::post('/management-user/store', [UserController::class, 'store']);
+        Route::get('/management-user/edit/{id}', [UserController::class, 'edit']);
+        Route::put('/management-user/update/{id}', [UserController::class, 'update']);
+        Route::delete('/management-user/destroy/{id}', [UserController::class, 'destroy']);
 
-
-    });
-    Route::prefix('it')->group(function () {
-
-        Route::get('/management-menu', [ManagementMenuController::class, 'index'])
-            ->name('it.management-menu');
-
-        Route::post('/management-menu/store', [ManagementMenuController::class, 'store'])
-            ->name('it.management-menu.store');
-
-        Route::put('/management-menu/update/{id}', [ManagementMenuController::class, 'update'])
-            ->name('it.management-menu.update');
-
-        Route::delete('/management-menu/destroy/{id}', [ManagementMenuController::class, 'destroy'])
-            ->name('it.management-menu.destroy');
-
+        Route::get('/management-menu', [ManagementMenuController::class, 'index'])->name('it.management-menu');
+        Route::post('/management-menu/store', [ManagementMenuController::class, 'store'])->name('it.management-menu.store');
+        Route::put('/management-menu/update/{id}', [ManagementMenuController::class, 'update'])->name('it.management-menu.update');
+        Route::delete('/management-user/destroy/{id}', [ManagementMenuController::class, 'destroy'])->name('it.management-menu.destroy');
 
         Route::get('/management-akses', [ManagementAksesController::class, 'index']);
         Route::post('/management-akses/store', [ManagementAksesController::class, 'store']);
     });
 
-
-    // // Jalur akses tanpa middleware permission jika diperlukan (opsional sesuai kode awal Anda)
-    // Route::prefix('it')->middleware(['auth'])->group(function () {
-    //     // Baris ini tetap dipertahankan sesuai permintaan Anda
-    //     Route::get('management-menu', [ManagementMenuController::class, 'index'])->name('it.management-menu');
-    // });
-
+    /*
+    |--------------------------------------------------------------------------
+    | SHE ROUTES
+    |--------------------------------------------------------------------------
+    */
     Route::prefix('she')->middleware('permission')->group(function () {
-        Route::get('/she/master/pta', [MasterPtaController::class, 'index']);
+        // Dashboard
+        Route::get('/dashboard', [SheDashboardController::class, 'index']);
+        Route::get('/dashboard/data', [SheDashboardController::class, 'getDashboardData']);
+        Route::get('/dashboard/incidents/{category}', [SheDashboardController::class, 'getIncidentDetails'])->name('she.dashboard.incidents');
+        Route::get('/dashboard/export', [SheDashboardController::class, 'exportDashboardData'])->name('she.dashboard.export');
+        Route::get('/dashboard/debug/work-accident', [SheDashboardController::class, 'debugWorkAccidentData'])->name('she.dashboard.debug');
+
+        // Master Data
+        Route::get('/master/pta', [MasterPtaController::class, 'index']);
+        Route::post('/master/pta/store', [MasterPtaController::class, 'store']);
+        Route::get('/master/pta/edit/{id}', [MasterPtaController::class, 'edit']);
+        Route::put('/master/pta/update/{id}', [MasterPtaController::class, 'update']);
+        Route::delete('/master/pta/destroy/{id}', [MasterPtaController::class, 'destroy']);
+
+        Route::get('/master/kta', [MasterKtaController::class, 'index']);
+        Route::post('/master/kta/store', [MasterKtaController::class, 'store']);
+        Route::get('/master/kta/edit/{id}', [MasterKtaController::class, 'edit']);
+        Route::put('/master/kta/update/{id}', [MasterKtaController::class, 'update']);
+        Route::delete('/master/kta/destroy/{id}', [MasterKtaController::class, 'destroy']);
+
+        Route::get('/master/pb', [MasterPbController::class, 'index']);
+        Route::post('/master/pb/store', [MasterPbController::class, 'store']);
+        Route::get('/master/pb/edit/{id}', [MasterPbController::class, 'edit']);
+        Route::put('/master/pb/update/{id}', [MasterPbController::class, 'update']);
+        Route::delete('/master/pb/destroy/{id}', [MasterPbController::class, 'destroy']);
+
+        Route::get('/master/pf', [MasterPfController::class, 'index']);
+        Route::post('/master/pf/store', [MasterPfController::class, 'store']);
+        Route::get('/master/pf/edit/{id}', [MasterPfController::class, 'edit']);
+        Route::put('/master/pf/update/{id}', [MasterPfController::class, 'update']);
+        Route::delete('/master/pf/destroy/{id}', [MasterPfController::class, 'destroy']);
+
+        Route::get('/master/pd', [MasterPdController::class, 'index']);
+        Route::post('/master/pd/store', [MasterPdController::class, 'store']);
+        Route::get('/master/pd/edit/{id}', [MasterPdController::class, 'edit']);
+        Route::put('/master/pd/update/{id}', [MasterPdController::class, 'update']);
+        Route::delete('/master/pd/destroy/{id}', [MasterPdController::class, 'destroy']);
+
+        // Transactions
+        Route::get('/hyari-hatto', [SheHyariHattoController::class, 'index']);
+        Route::put('/laporanhyarihatto/update/{id}', [SheHyariHattoController::class, 'update']);
+        Route::get('/laporanhyarihatto/download/{id}', [SheHyariHattoController::class, 'downloadPdf']);
+        Route::get('/hyari-hatto/export/excel', [SheHyariHattoController::class, 'exportExcel']);
+
+        Route::get('/komitmen-k3', [KomitmenK3Controller::class, 'getlaporank3']);
+        Route::get('/komitmen-k3/detail/{section_id}', [KomitmenK3Controller::class, 'getSectionDetail']);
+
+        Route::get('/safety-riding', [SheSafetyRidingController::class, 'index']);
+        Route::post('/safety-riding/store', [SheSafetyRidingController::class, 'store']);
+        Route::get('/safety-riding/edit/{id}', [SheSafetyRidingController::class, 'edit']);
+        Route::put('/safety-riding/update/{id}', [SheSafetyRidingController::class, 'update']);
+        Route::delete('/safety-riding/destroy/{id}', [SheSafetyRidingController::class, 'destroy']);
+        Route::get('/safety-riding/download/{id}', [SheSafetyRidingController::class, 'downloadLaporan'])->name('she.safety-riding.download');
+        Route::get('/safety-riding/get-users-by-section/{section_id}', [SheSafetyRidingController::class, 'getUsersBySection']);
+        Route::delete('/safety-riding/{id}/delete-image/{imageIndex}', [SheSafetyRidingController::class, 'deleteImage']);
+        Route::put('/safety-riding/tindak-lanjut/{id}', [SheSafetyRidingController::class, 'tindakLanjut']);
+        Route::get('/safety-riding/export', [SheSafetyRidingController::class, 'export']);
+
+        Route::get('/insiden', [InsidenController::class, 'index']);
+        Route::get('/insiden/form', [InsidenController::class, 'create']);
+        Route::get('/insiden/edit/{id}', [InsidenController::class, 'edit']);
+        Route::put('/insiden/update/{id}', [InsidenController::class, 'update']);
+        Route::get('/insiden/detail/{id}', [InsidenController::class, 'show']);
+        Route::delete('/insiden/delete/{id}', [InsidenController::class, 'destroy']);
+        Route::post('/insiden/store', [InsidenController::class, 'store']);
+
+        Route::get('/safety-patrol', [SheSafetyPatrolController::class, 'index']);
+        Route::post('/safety-patrol/store', [SheSafetyPatrolController::class, 'store']);
+        Route::put('/safety-patrol/update/{id}', [SheSafetyPatrolController::class, 'update']);
+        Route::delete('/safety-patrol/destroy/{id}', [SheSafetyPatrolController::class, 'destroy']);
+        Route::get('/safety-patrol/download/{id}', [SheSafetyPatrolController::class, 'downloadLaporan'])->name('she.safety-patrol.download');
+        Route::get('/safety-patrol/get-users-by-section/{section_id}', [SheSafetyPatrolController::class, 'getUsersBySection']);
+        Route::delete('/safety-patrol/{id}/delete-image/{type}', [SheSafetyPatrolController::class, 'deleteImage']);
+        Route::put('/safety-patrol/tindak-lanjut/{id}', [SheSafetyPatrolController::class, 'tindakLanjut']);
+        Route::get('/safety-patrol/export', [SheSafetyPatrolController::class, 'export']);
     });
 
-    Route::prefix('she')->middleware('permission')->group(function () {
-        Route::get('/she/master/kta', [MasterPtaController::class, 'index']);
-    });
-
-    Route::prefix('she')->middleware('permission')->group(function () {
-        Route::get('/she/master/pb', [MasterPbController::class, 'index']);
-    });
-
+    /*
+    |--------------------------------------------------------------------------
+    | PIC ROUTES
+    |--------------------------------------------------------------------------
+    */
     Route::prefix('pic')->middleware('permission')->group(function () {
+        // Dashboard
         Route::get('/dashboard', [PicDashboardController::class, 'index']);
-    });
+        Route::get('/dashboard/data', [PicDashboardController::class, 'getDashboardData']);
+        Route::get('/dashboard/incidents/{category}', [PicDashboardController::class, 'getIncidentDetails'])->name('pic.dashboard.incidents');
+        Route::get('/dashboard/export', [PicDashboardController::class, 'exportDashboardData'])->name('pic.dashboard.export');
+        Route::get('/dashboard/debug/work-accident', [PicDashboardController::class, 'debugWorkAccidentData'])->name('pic.dashboard.debug');
 
-    Route::prefix('manager')->middleware('permission')->group(function () {
-        Route::get('/dashboard', [ManagerDashboardController::class, 'index']);
-    });
+        // Hyari Hatto
+        Route::get('/laporanhyarihatto', [PicHyariHattoController::class, 'index']);
+        Route::post('/laporanhyarihatto/store', [PicHyariHattoController::class, 'store']);
+        Route::get('/laporanhyarihatto/edit/{id}', [PicHyariHattoController::class, 'edit']);
+        Route::put('/laporanhyarihatto/update/{id}', [PicHyariHattoController::class, 'update']);
+        Route::delete('/laporanhyarihatto/destroy/{id}', [PicHyariHattoController::class, 'destroy']);
+        Route::get('/laporanhyarihatto/download/{id}', [PicHyariHattoController::class, 'downloadPdf']);
+        Route::get('/hyari-hatto/export/excel', [PicHyariHattoController::class, 'exportExcel']);
 
-    // --- USER MANAGEMENT ROUTES ---
-    Route::get('/management-user', [UserController::class, 'index']);
-    Route::post('it/management-user/store', [UserController::class, 'store']);
-    Route::get('/it/management-user/edit/{id}', [UserController::class, 'edit']);
-    Route::put('/it/management-user/update/{id}', [UserController::class, 'update']);
-    Route::delete('it/management-user/destroy/{id}', [UserController::class, 'destroy']);
+        // Komitmen K3
+        Route::get('/komitmenk3', [KomitmenK3Controller::class, 'index']);
+        Route::post('/komitmenk3/store', [KomitmenK3Controller::class, 'store']);
+        Route::get('/komitmenk3/edit/{id}', [KomitmenK3Controller::class, 'edit']);
+        Route::put('/komitmenk3/update/{id}', [KomitmenK3Controller::class, 'update']);
+        Route::get('/komitmenk3/export', [KomitmenK3Controller::class, 'export']);
+        Route::delete('/komitmenk3/destroy/{id}', [KomitmenK3Controller::class, 'destroy']);
+        Route::post('/komitmenk3/sync', [KomitmenK3Controller::class, 'syncUsers']);
 
+        // Safety Riding
+        Route::get('/safety-riding', [PicSafetyRidingController::class, 'index']);
+        Route::put('/safety-riding/upload-after/{id}', [PicSafetyRidingController::class, 'uploadAfter']);
+        Route::delete('/safety-riding/delete-after/{id}/{index}', [PicSafetyRidingController::class, 'deleteAfterImage']);
+        Route::get('/safety-riding/export', [PicSafetyRidingController::class, 'export']);
 
+        // Insiden
+        Route::get('/insiden', [InsidenController::class, 'index']);
+        Route::get('/insiden/form', [InsidenController::class, 'create']);
+        Route::get('/insiden/edit/{id}', [InsidenController::class, 'edit']);
+        Route::put('/insiden/update/{id}', [InsidenController::class, 'update']);
+        Route::get('/insiden/detail/{id}', [InsidenController::class, 'show']);
+        Route::delete('/insiden/delete/{id}', [InsidenController::class, 'destroy']);
+        Route::post('/insiden/store', [InsidenController::class, 'store']);
 
-
-
-
-    // --- MASTER DATA SHE ROUTES ---
-    Route::get('/she/master/pta', [MasterPtaController::class, 'index']);
-    Route::post('/she/master/pta/store', [MasterPtaController::class, 'store']);
-    Route::get('/she/master/pta/edit/{id}', [MasterPtaController::class, 'edit']);
-    Route::put('/she/master/pta/update/{id}', [MasterPtaController::class, 'update']);
-    Route::delete('/she/master/pta/destroy/{id}', [MasterPtaController::class, 'destroy']);
-
-    Route::get('/she/master/kta', [MasterKtaController::class, 'index']);
-    Route::post('/she/master/kta/store', [MasterKtaController::class, 'store']);
-    Route::get('/she/master/kta/edit/{id}', [MasterKtaController::class, 'edit']);
-    Route::put('/she/master/kta/update/{id}', [MasterKtaController::class, 'update']);
-    Route::delete('/she/master/kta/destroy/{id}', [MasterKtaController::class, 'destroy']);
-
-    Route::get('/she/master/pb', [MasterPbController::class, 'index']);
-    Route::post('/she/master/pb/store', [MasterPbController::class, 'store']);
-    Route::get('/she/master/pb/edit/{id}', [MasterPbController::class, 'edit']);
-    Route::put('/she/master/pb/update/{id}', [MasterPbController::class, 'update']);
-    Route::delete('/she/master/pb/destroy/{id}', [MasterPbController::class, 'destroy']);
-
-    // --- LAPORAN HYARI HATTO ---
-    Route::get('/pic/laporanhyarihatto', [PicHyariHattoController::class, 'index']);
-    Route::post('/pic/laporanhyarihatto/store', [PicHyariHattoController::class, 'store']);
-    Route::get('/pic/laporanhyarihatto/edit/{id}', [PicHyariHattoController::class, 'edit']);
-    Route::put('/pic/laporanhyarihatto/update/{id}', [PicHyariHattoController::class, 'update']);
-    Route::delete('/pic/laporanhyarihatto/destroy/{id}', [PicHyariHattoController::class, 'destroy']);
-    Route::get('/pic/laporanhyarihatto/download/{id}', [PicHyariHattoController::class, 'downloadPdf']);
-    Route::get('/pic/hyari-hatto/export/excel', [PicHyariHattoController::class, 'exportExcel']);
-
-    Route::get('/she/hyari-hatto', [SheHyariHattoController::class, 'index']);
-    Route::put('/she/laporanhyarihatto/update/{id}', [SheHyariHattoController::class, 'update']);
-    Route::get('/she/laporanhyarihatto/download/{id}', [SheHyariHattoController::class, 'downloadPdf']);
-    Route::get('/she/hyari-hatto/export/excel', [SheHyariHattoController::class, 'exportExcel']);
-
-    // --- KOMITMEN K3 ---
-    Route::get('/pic/komitmenk3', [KomitmenK3Controller::class, 'index']);
-    Route::post('/pic/komitmenk3/store', [KomitmenK3Controller::class, 'store']);
-    Route::get('/pic/komitmenk3/edit/{id}', [KomitmenK3Controller::class, 'edit']);
-    Route::put('/pic/komitmenk3/update/{id}', [KomitmenK3Controller::class, 'update']);
-    Route::get('/pic/komitmenk3/export', [KomitmenK3Controller::class, 'export']);
-    Route::delete('/pic/komitmenk3/destroy/{id}', [KomitmenK3Controller::class, 'destroy']);
-    Route::post('pic/komitmenk3/sync', [KomitmenK3Controller::class, 'syncUsers']);
-
-    Route::get('/she/komitmen-k3', [KomitmenK3Controller::class, 'getlaporank3']);
-    Route::get('/she/komitmen-k3/detail/{section_id}', [KomitmenK3Controller::class, 'getSectionDetail']);
-
-    // --- MASTER PF & PD ---
-    Route::get('/she/master/pf', [MasterPfController::class, 'index']);
-    Route::post('/she/master/pf/store', [MasterPfController::class, 'store']);
-    Route::get('/she/master/pf/edit/{id}', [MasterPfController::class, 'edit']);
-    Route::put('/she/master/pf/update/{id}', [MasterPfController::class, 'update']);
-    Route::delete('/she/master/pf/destroy/{id}', [MasterPfController::class, 'destroy']);
-
-    Route::get('/she/master/pd', [MasterPdController::class, 'index']);
-    Route::post('/she/master/pd/store', [MasterPdController::class, 'store']);
-    Route::get('/she/master/pd/edit/{id}', [MasterPdController::class, 'edit']);
-    Route::put('/she/master/pd/update/{id}', [MasterPdController::class, 'update']);
-    Route::delete('/she/master/pd/destroy/{id}', [MasterPdController::class, 'destroy']);
-
-    // --- SAFETY RIDING ---
-    Route::get('/she/safety-riding', [SheSafetyRidingController::class, 'index']);
-    Route::post('/she/safety-riding/store', [SheSafetyRidingController::class, 'store']);
-    Route::get('/she/safety-riding/edit/{id}', [SheSafetyRidingController::class, 'edit']);
-    Route::put('/she/safety-riding/update/{id}', [SheSafetyRidingController::class, 'update']);
-    Route::delete('/she/safety-riding/destroy/{id}', [SheSafetyRidingController::class, 'destroy']);
-    Route::get('/she/safety-riding/download/{id}', [SheSafetyRidingController::class, 'downloadLaporan'])->name('laporan.download');
-    Route::get('/she/safety-riding/get-users-by-section/{section_id}', [SheSafetyRidingController::class, 'getUsersBySection']);
-    Route::delete('/she/safety-riding/{id}/delete-image/{imageIndex}', [SheSafetyRidingController::class, 'deleteImage']);
-    Route::put('/she/safety-riding/tindak-lanjut/{id}', [SheSafetyRidingController::class, 'tindakLanjut']);
-    Route::get('/she/safety-riding/export', [SheSafetyRidingController::class, 'export']);
-
-    Route::get('/pic/safety-riding', [PicSafetyRidingController::class, 'index']);
-    Route::put('/pic/safety-riding/upload-after/{id}', [PicSafetyRidingController::class, 'uploadAfter']);
-    Route::delete('/pic/safety-riding/delete-after/{id}/{index}', [PicSafetyRidingController::class, 'deleteAfterImage']);
-    Route::get('/pic/safety-riding/export', [PicSafetyRidingController::class, 'export']);
-
-    // --- INSIDEN ---
-    Route::get('/she/insiden', [InsidenController::class, 'index']);
-    Route::get('/she/insiden/form', [InsidenController::class, 'create']);
-    Route::get('/she/insiden/edit/{id}', [InsidenController::class, 'edit']);
-    Route::put('/she/insiden/update/{id}', [InsidenController::class, 'update']);
-    Route::get('/she/insiden/detail/{id}', [InsidenController::class, 'show']);
-    Route::delete('/she/insiden/delete/{id}', [InsidenController::class, 'destroy']);
-    Route::post('/she/insiden/store', [InsidenController::class, 'store']);
-
-    Route::get('/pic/insiden', [InsidenController::class, 'index']);
-    Route::get('/pic/insiden/form', [InsidenController::class, 'create']);
-    Route::get('/pic/insiden/edit/{id}', [InsidenController::class, 'edit']);
-    Route::put('/pic/insiden/update/{id}', [InsidenController::class, 'update']);
-    Route::get('/pic/insiden/detail/{id}', [InsidenController::class, 'show']);
-    Route::delete('/pic/insiden/delete/{id}', [InsidenController::class, 'destroy']);
-    Route::post('/pic/insiden/store', [InsidenController::class, 'store']);
-
-    // --- SAFETY PATROL ---
-    Route::get('/she/safety-patrol', [SheSafetyPatrolController::class, 'index']);
-    Route::post('/she/safety-patrol/store', [SheSafetyPatrolController::class, 'store']);
-    Route::put('/she/safety-patrol/update/{id}', [SheSafetyPatrolController::class, 'update']);
-    Route::delete('/she/safety-patrol/destroy/{id}', [SheSafetyPatrolController::class, 'destroy']);
-    Route::get('/she/safety-Patrol/download/{id}', [SheSafetyPatrolController::class, 'downloadLaporan'])->name('laporan.download');
-    Route::get('/she/safety-Patrol/get-users-by-section/{section_id}', [SheSafetyPatrolController::class, 'getUsersBySection']);
-    Route::delete('/she/safety-patrol/{id}/delete-image/{type}', [SheSafetyPatrolController::class, 'deleteImage']);
-    Route::put('/she/safety-patrol/tindak-lanjut/{id}', [SheSafetyPatrolController::class, 'tindakLanjut']);
-    Route::get('/she/safety-patrol/export', [SheSafetyPatrolController::class, 'export']);
-
-    Route::prefix('pic')->group(function () {
+        // Safety Patrol
         Route::get('/safety-patrol', [PicSafetyPatrolController::class, 'index']);
         Route::put('/safety-patrol/upload-after/{id}', [PicSafetyPatrolController::class, 'uploadAfter']);
         Route::delete('/safety-patrol/delete-after/{id}', [PicSafetyPatrolController::class, 'deleteAfter']);
         Route::get('/safety-patrol/export', [PicSafetyPatrolController::class, 'export']);
         Route::get('/safety-patrol/download/{id}', [PicSafetyPatrolController::class, 'downloadLaporan']);
         Route::get('/safety-patrol/view/{id}', [PicSafetyPatrolController::class, 'viewDetail']);
-    });
 
-    Route::prefix('pic')->group(function () {
+        // Program Safety
         Route::get('/programsafety', [PICProgramSafetyController::class, 'index'])->name('pic.programsafety');
     });
 
-    Route::prefix('she')->group(function () {
-        Route::get('/dashboard', [SheDashboardController::class, 'index']);
-        Route::get('/dashboard/data', [SheDashboardController::class, 'getDashboardData']);
-        Route::get('/dashboard/incidents/{category}', [SheDashboardController::class, 'getIncidentDetails'])->name('she.dashboard.incidents');
-        Route::get('/dashboard/export', [SheDashboardController::class, 'exportDashboardData'])->name('she.dashboard.export');
-        Route::get('/dashboard/debug/work-accident', [SheDashboardController::class, 'debugWorkAccidentData'])->name('she.dashboard.debug');
+    /*
+    |--------------------------------------------------------------------------
+    | MANAGER ROUTES
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('manager')->middleware('permission')->group(function () {
+        Route::get('/dashboard', [ManagerDashboardController::class, 'index']);
+        Route::get('/programsafety', [ProgramSafetyController::class, 'index']);
+        Route::post('/programsafety', [ProgramSafetyController::class, 'store']);
+        Route::put('/programsafety/{id}', [ProgramSafetyController::class, 'update']);
+        Route::delete('/programsafety/{id}', [ProgramSafetyController::class, 'destroy']);
+
+        Route::get('/hyari-hatto', [HyariHattoController::class, 'index'])->name('manager.hyarihatto');
+        Route::get('/insiden', [ManagerInsidenController::class, 'index'])->name('manager.insiden');
+        Route::get('/komitmen-k3', [ManagerKomitmenK3Controller::class, 'index'])->name('manager.komitmen-k3');
+        Route::get('/safety-riding', [ManagerSafetyRidingController::class, 'index']);
+        Route::get('/safety-patrol', [ManagerSafetyPatrolController::class, 'index'])->name('manager.safety-patrol');
     });
-
-    Route::get('/she/dashboard', [SheDashboardController::class, 'index']);
-});
-
-/*
-|--------------------------------------------------------------------------
-| MANAGER ROUTES
-|--------------------------------------------------------------------------
-*/
-Route::middleware('auth')->prefix('manager')->group(function () {
-    Route::get('/programsafety', [ProgramSafetyController::class, 'index']);
-    Route::post('/programsafety', [ProgramSafetyController::class, 'store']);
-    Route::put('/programsafety/{id}', [ProgramSafetyController::class, 'update']);
-    Route::delete('/programsafety/{id}', [ProgramSafetyController::class, 'destroy']);
-
-    Route::get('/hyari-hatto', [HyariHattoController::class, 'index'])->name('manager.hyarihatto');
-    Route::get('/insiden', [ManagerInsidenController::class, 'index'])->name('manager.insiden');
-    Route::get('/komitmen-k3', [ManagerKomitmenK3Controller::class, 'index'])->name('manager.komitmen-k3');
-    Route::get('/safety-riding', [ManagerSafetyRidingController::class, 'index']);
-    Route::get('/safety-patrol', [ManagerSafetyPatrolController::class, 'index'])->name('manager.safety-patrol');
 });
