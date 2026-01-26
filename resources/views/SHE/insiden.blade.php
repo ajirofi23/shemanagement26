@@ -14,12 +14,6 @@
     .content {
         background-color: #f8fafc;
         min-height: 100vh;
-        animation: fadeInPage 0.6s ease-out;
-    }
-
-    @keyframes fadeInPage {
-        from { opacity: 0; }
-        to { opacity: 1; }
     }
 
     /* Header Styling */
@@ -29,9 +23,8 @@
 
     /* Card & Shadow Improvements */
     .modern-card {
-        border-radius: 16px !important;
+        border-radius: 12px !important;
         border: 1px solid rgba(226, 232, 240, 0.8) !important;
-        transition: all 0.3s ease;
     }
 
     .filter-card {
@@ -46,30 +39,22 @@
         background: white;
     }
 
-    .modern-table thead {
-        background-color: #f1f5f9;
-    }
-
     .modern-table thead th {
         text-transform: uppercase;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         letter-spacing: 0.05em;
-        color: #475569;
         font-weight: 700;
-        border: none;
-        padding: 15px;
+        padding: 12px 15px;
+        vertical-align: middle;
     }
 
     .modern-table tbody tr {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
         border-bottom: 1px solid #f1f5f9;
+        transition: background-color 0.2s;
     }
 
     .modern-table tbody tr:hover {
         background-color: #f8fafc !important;
-        transform: scale(1.002);
-        z-index: 10;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
 
     /* Status Badges - Modern Pill Style */
@@ -78,6 +63,7 @@
         border-radius: 50px;
         font-weight: 600;
         font-size: 0.7rem;
+        display: inline-block;
     }
 
     .bg-soft-warning { background-color: #fef3c7; color: #92400e; }
@@ -88,23 +74,19 @@
 
     /* Action Buttons */
     .btn-action {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
+        border-radius: 6px;
         transition: all 0.2s;
+        text-decoration: none;
     }
 
     .btn-action:hover {
-        transform: translateY(-2px);
-    }
-
-    /* Spacing Custom */
-    .spacer-y {
-        margin-top: 2.5rem;
-        margin-bottom: 2.5rem;
+        opacity: 0.8;
+        transform: translateY(-1px);
     }
 
     /* Filter Input focus */
@@ -143,37 +125,37 @@
     @endif
 
     {{-- Filter Section --}}
-    <div class="card modern-card filter-card shadow-sm">
-        <div class="card-body p-4">
-            <h6 class="fw-bold mb-4 text-dark d-flex align-items-center">
-                <i class="bi bi-funnel-fill me-2 text-primary"></i> Filter Pencarian
-            </h6>
+    <div class="card modern-card filter-card shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-funnel-fill me-2 text-primary"></i> Filter Data
+                </h6>
+                <div class="d-flex gap-2">
+                    <button type="button" id="resetFilter" class="btn btn-sm btn-light border">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                    </button>
+                    <button type="submit" form="filterForm" class="btn btn-sm btn-primary">
+                        <i class="bi bi-filter me-1"></i> Terapkan
+                    </button>
+                </div>
+            </div>
             
             <form action="{{ $currentUrl }}" method="GET" id="filterForm">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-secondary">Tanggal Kejadian</label>
-                        <input type="date" id="tanggal" name="tanggal" value="{{ request('tanggal') }}" class="form-control" max="{{ date('Y-m-d') }}">
+                <div class="row g-2">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-secondary mb-1">Tanggal</label>
+                        <input type="date" id="tanggal" name="tanggal" value="{{ request('tanggal') }}" class="form-control form-control-sm" max="{{ date('Y-m-d') }}">
                     </div>
                     
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-secondary">Bulan</label>
-                        <input type="month" id="bulan" name="bulan" value="{{ request('bulan') }}" class="form-control">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-secondary mb-1">Bulan</label>
+                        <input type="month" id="bulan" name="bulan" value="{{ request('bulan') }}" class="form-control form-control-sm">
                     </div>
                     
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-secondary">Departemen</label>
-                        <input type="text" id="department" name="department" value="{{ request('department') }}" class="form-control" placeholder="Cari departemen..." list="departmentList">
-                        <datalist id="departmentList">
-                            @foreach($departments as $dept)
-                            <option value="{{ $dept }}">
-                            @endforeach
-                        </datalist>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-secondary">Section</label>
-                        <select id="section_id" name="section_id" class="form-select">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-secondary mb-1">Section</label>
+                        <select id="section_id" name="section_id" class="form-select form-select-sm">
                             <option value="">Semua Section</option>
                             @foreach($sections as $section)
                             <option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : '' }}>
@@ -182,73 +164,60 @@
                             @endforeach
                         </select>
                     </div>
-                    
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold text-secondary">Kategori</label>
-                        <select id="kategori" name="kategori" class="form-select">
-                            <option value="">Semua Kategori</option>
+
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-secondary mb-1">Kategori</label>
+                        <select id="kategori" name="kategori" class="form-select form-select-sm">
+                            <option value="">Semua</option>
                             @foreach($kategoriList ?? [] as $kat)
                             <option value="{{ $kat }}" {{ request('kategori') === $kat ? 'selected' : '' }}>{{ $kat }}</option>
                             @endforeach
                         </select>
                     </div>
                     
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold text-secondary">Status</label>
-                        <select id="status" name="status" class="form-select">
-                            <option value="">Semua Status</option>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-secondary mb-1">Status</label>
+                        <select id="status" name="status" class="form-select form-select-sm">
+                            <option value="">Semua</option>
                             <option value="open" {{ request('status') === 'open' ? 'selected' : '' }}>Open</option>
                             <option value="progress" {{ request('status') === 'progress' ? 'selected' : '' }}>In Progress</option>
                             <option value="closed" {{ request('status') === 'closed' ? 'selected' : '' }}>Closed</option>
                         </select>
                     </div>
-                    
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold text-secondary">Lokasi</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-geo-alt"></i></span>
-                            <input type="text" id="search_lokasi" name="search_lokasi" value="{{ request('search_lokasi') }}" class="form-control border-start-0" placeholder="Cari lokasi...">
+
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-secondary mb-1">Pencarian Lokasi</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="search_lokasi" name="search_lokasi" value="{{ request('search_lokasi') }}" class="form-control" placeholder="Lokasi...">
                         </div>
                     </div>
-                </div>
-                
-                <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
-                    <button type="button" id="resetFilter" class="btn btn-light px-4">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-                    </button>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-filter me-1"></i> Terapkan Filter
-                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    {{-- Spacer Section --}}
-    <div class="spacer-y"></div>
-
     {{-- Tabel Insiden --}}
-    <div class="card modern-card shadow-lg">
-        <div class="card-body p-0"> {{-- P-0 agar tabel penuh ke pinggir --}}
+    <div class="card modern-card shadow-sm">
+        <div class="card-body p-0">
             @if($insidens->isEmpty())
             <div class="text-center py-5">
-                <img src="https://illustrations.popsy.co/slate/empty-folder.svg" alt="Empty" style="width: 200px;" class="mb-4">
+                <img src="https://illustrations.popsy.co/slate/empty-folder.svg" alt="Empty" style="width: 150px;" class="mb-4">
                 <h5 class="text-secondary fw-bold">Tidak ada data ditemukan</h5>
-                <p class="text-muted">Cobalah menyesuaikan filter Anda untuk mendapatkan hasil yang berbeda.</p>
-                <button type="button" class="btn btn-outline-primary mt-2" onclick="document.getElementById('resetFilter').click()">Reset Filter</button>
+                <p class="text-muted small">Cobalah menyesuaikan filter Anda untuk mendapatkan hasil yang berbeda.</p>
+                <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('resetFilter').click()">Reset Filter</button>
             </div>
             @else
             <div class="table-responsive">
                 <table class="table modern-table align-middle mb-0">
-                    <thead>
+                    <thead class="table-dark">
                         <tr>
-                            <th class="ps-4">No</th>
+                            <th class="ps-4" style="width: 60px;">No</th>
                             <th>Info Kejadian</th>
                             <th>Lokasi</th>
                             <th>Kategori</th>
                             <th>Unit / Dept</th>
                             <th>Status</th>
-                            <th class="pe-4 text-center">Aksi</th>
+                            <th class="pe-4 text-end" style="width: 150px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -290,8 +259,8 @@
                                         <span class="badge-pill-modern bg-secondary">{{ $insiden->status }}</span>
                                 @endswitch
                             </td>
-                            <td class="pe-4 text-center">
-                                <div class="d-flex justify-content-center gap-1">
+                            <td class="pe-4 text-end">
+                                <div class="d-flex justify-content-end gap-1">
                                     {{-- Detail --}}
                                     @php
                                         $viewUrl = url('/she/insiden/detail/' . $insiden->id);
@@ -299,7 +268,7 @@
                                         elseif(strpos($currentUrl, '/pic/insiden') !== false) $viewUrl = url('/pic/insiden/detail/' . $insiden->id);
                                     @endphp
                                     <a href="{{ $viewUrl }}" class="btn-action bg-soft-primary text-primary" title="Lihat Detail">
-                                        <i class="bi bi-eye-fill"></i>
+                                        <i class="bi bi-eye"></i>
                                     </a>
 
                                     {{-- Edit --}}
@@ -315,7 +284,7 @@
 
                                         @if($showEdit)
                                         <a href="{{ $editUrl }}" class="btn-action bg-soft-warning text-warning" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
+                                            <i class="bi bi-pencil"></i>
                                         </a>
                                         @endif
                                     @endif
@@ -330,7 +299,7 @@
                                         <form action="{{ $deleteUrl }}" method="POST" class="d-inline" onsubmit="return confirmDelete(event)">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn-action bg-soft-danger text-danger border-0" title="Hapus">
-                                                <i class="bi bi-trash3-fill"></i>
+                                                <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
                                     @endif

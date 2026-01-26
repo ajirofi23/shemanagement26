@@ -21,8 +21,23 @@ class CheckPermission
         // Ambil URL yang sedang diakses
         $currentPath = '/' . ltrim($request->path(), '/');  // contoh: /it/dashboard
 
-        // Ambil menu yang URL-nya sama
-        $menu = DB::table('tb_menus')->where('url', $currentPath)->first();
+        // Ambil menu yang URL-nya sama atau parent menu-nya
+        $menu = null;
+        $checkPath = $currentPath;
+
+        while (true) {
+            $menu = DB::table('tb_menus')->where('url', $checkPath)->first();
+            if ($menu)
+                break;
+
+            $lastSlash = strrpos($checkPath, '/');
+            if ($lastSlash === false || $checkPath === '/')
+                break;
+
+            $checkPath = substr($checkPath, 0, $lastSlash);
+            if ($checkPath === '')
+                $checkPath = '/';
+        }
 
         if (!$menu) {
             return abort(403, 'Menu tidak terdaftar dalam sistem.');
