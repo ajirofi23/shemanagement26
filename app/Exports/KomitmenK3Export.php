@@ -58,7 +58,7 @@ class KomitmenK3Export implements FromCollection, WithHeadings, WithMapping, Wit
                         }
                         $sub->where(function ($inner) {
                             $inner->where('nama', 'like', "%{$this->search}%")
-                                ->orWhere('nip', 'like', "%{$this->search}%");
+                                ->orWhere('kode_user', 'like', "%{$this->search}%");
                         });
                     });
             });
@@ -72,7 +72,7 @@ class KomitmenK3Export implements FromCollection, WithHeadings, WithMapping, Wit
     {
         return [
             'NO',
-            'NIP',
+            'NIP', // Header label (stays NIP/Username for clarity)
             'NAMA',
             'SECTION',
             'DEPARTEMEN',
@@ -108,7 +108,7 @@ class KomitmenK3Export implements FromCollection, WithHeadings, WithMapping, Wit
 
         return [
             $this->rows->search($row) + 1,
-            $row->user->nip ?? 'N/A',
+            $row->user->kode_user ?? 'N/A',
             $row->user->nama ?? 'N/A',
             $row->user->section->section ?? 'N/A',
             $row->user->section->department ?? 'N/A',

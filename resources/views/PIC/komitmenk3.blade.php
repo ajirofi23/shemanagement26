@@ -150,14 +150,14 @@
                     </div>
 
                     <div class="col-md">
-                        <form action="{{ url('/pic/komitmenk3') }}" method="GET">
+                        <form action="{{ url()->current() }}" method="GET">
                             <input type="hidden" name="bulan" value="{{ request('bulan', date('n')) }}">
                             <input type="hidden" name="tahun" value="{{ request('tahun', date('Y')) }}">
-                            <label class="form-label small fw-bold text-secondary mb-1">Cari Karyawan / NIP</label>
+                            <label class="form-label small fw-bold text-secondary mb-1">Cari Karyawan / NIP / Status</label>
                             <div class="input-group input-group-sm shadow-sm">
                                 <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-search"></i></span>
                                 <input type="text" id="searchInput" name="search" value="{{ request('search') }}" 
-                                    class="form-control border-start-0 ps-0" placeholder="Cari Nama atau NIP...">
+                                    class="form-control border-start-0 ps-0" placeholder="">
                                 <button type="submit" class="btn btn-primary px-3">Cari</button>
                             </div>
                         </form>
@@ -197,7 +197,7 @@
                                         <small class="text-muted" style="font-size: 0.7rem;">{{ $data->user->section->section ?? 'N/A' }}</small>
                                     </td>
                                     <td>
-                                        <code class="text-primary fw-bold" style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">{{ $data->user->nip ?? 'N/A' }}</code>
+                                        <code class="text-primary fw-bold" style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">{{ $data->user->kode_user ?? 'N/A' }}</code>
                                     </td>
                                     <td>
                                         @if($data->bukti)
@@ -334,7 +334,7 @@
                         </div>
                         <div class="modal-footer border-0">
                             <a href="{{ asset('storage/' . $data->bukti) }}" target="_blank" class="btn btn-outline-dark btn-sm"><i class="bi bi-download me-1"></i> Download</a>
-                            <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Tutup</button>
+                            <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-modal="hide" data-bs-dismiss="modal">Tutup</button>
                         </div>
                     </div>
                 </div>
@@ -344,11 +344,36 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Typing Placeholder Effect
+            const placeholders = ["Cari Nama...", "Cari NIP...", "Cari Status...", "Cari Rangkuman..."];
+            let current = 0, index = 0, isDeleting = false;
+            const input = document.getElementById("searchInput");
+
+            function type() {
+                let currentText = placeholders[current];
+                if (isDeleting) {
+                    input.placeholder = currentText.substring(0, index--);
+                } else {
+                    input.placeholder = currentText.substring(0, index++);
+                }
+
+                if (!isDeleting && index === currentText.length) {
+                    isDeleting = true;
+                    setTimeout(type, 2000);
+                } else if (isDeleting && index === 0) {
+                    isDeleting = false;
+                    current = (current + 1) % placeholders.length;
+                    setTimeout(type, 500);
+                } else if (input) {
+                    setTimeout(type, isDeleting ? 50 : 100);
+                }
+            }
+            if(input) type();
+
             const editModal = document.getElementById('editKomitmenK3Modal');
             if (editModal) {
                 editModal.addEventListener('show.bs.modal', function (event) {
                     const button = event.relatedTarget;
-                    // Check if it's the specific header button (which has its own target)
                     if (button.tagName === 'BUTTON' && button.hasAttribute('data-bs-target') && button.getAttribute('data-bs-target') !== '#editKomitmenK3Modal') return;
 
                     const id = button.getAttribute('data-id');

@@ -101,14 +101,17 @@ class KomitmenK3Controller extends Controller
                 // 1. Cari di kolom komitmen
                 $q->where('komitmen', 'like', "%{$search}%");
 
-                // 2. Cari di kolom user (nama atau nip) di section yang sama
+                // 2. Cari di kolom user (nama atau username/usr) di section yang sama
                 $q->orWhereHas('user', function ($sub) use ($search, $sectionId) {
                     $sub->where('section_id', $sectionId)
                         ->where(function ($subsub) use ($search) {
                             $subsub->where('nama', 'like', "%{$search}%")
-                                ->orWhere('nip', 'like', "%{$search}%");
+                                ->orWhere('kode_user', 'like', "%{$search}%");
                         });
                 });
+
+                // 3. Cari di kolom status
+                $q->orWhere('status', 'like', "%{$search}%");
             });
         }
 
