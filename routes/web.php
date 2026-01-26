@@ -60,6 +60,23 @@ Route::middleware('auth')->group(function () {
     // LOGOUT
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+    // DASHBOARD REDIRECT (Universal entry point)
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        $level = strtoupper($user->level);
+
+        if ($level === 'SHE') {
+            return redirect('/she/dashboard');
+        } elseif ($level === 'IT' || $level === 'ADMIN') {
+            return redirect('/it/dashboard');
+        } elseif ($level === 'PIC') {
+            return redirect('/pic/dashboard');
+        } elseif ($level === 'MANAGER') {
+            return redirect('/manager/dashboard');
+        }
+        return redirect('/');
+    });
+
     /*
     |--------------------------------------------------------------------------
     | IT ROUTES (Login + Permission Required)
@@ -98,6 +115,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard/data', [SheDashboardController::class, 'getDashboardData']);
         Route::get('/dashboard/incidents/{category}', [SheDashboardController::class, 'getIncidentDetails'])->name('she.dashboard.incidents');
         Route::get('/dashboard/export', [SheDashboardController::class, 'exportDashboardData'])->name('she.dashboard.export');
+        Route::get('/dashboard/export-matrix', [SheDashboardController::class, 'exportMatrix'])->name('she.dashboard.exportMatrix');
         Route::get('/dashboard/debug/work-accident', [SheDashboardController::class, 'debugWorkAccidentData'])->name('she.dashboard.debug');
 
         // Master Data
@@ -139,6 +157,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/komitmen-k3', [KomitmenK3Controller::class, 'getlaporank3']);
         Route::get('/komitmen-k3/detail/{section_id}', [KomitmenK3Controller::class, 'getSectionDetail']);
+        Route::get('/komitmen-k3/export', [KomitmenK3Controller::class, 'exportSHE']);
 
         Route::get('/safety-riding', [SheSafetyRidingController::class, 'index']);
         Route::post('/safety-riding/store', [SheSafetyRidingController::class, 'store']);

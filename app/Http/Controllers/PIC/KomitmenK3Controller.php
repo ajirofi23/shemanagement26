@@ -324,6 +324,38 @@ class KomitmenK3Controller extends Controller
         );
     }
 
+    public function exportSHE(Request $request)
+    {
+        // For SHE, sectionId can be null (all) or from request
+        $sectionId = $request->input('section_id');
+        $bulan = $request->input('bulan', date('n'));
+        $tahun = $request->input('tahun', date('Y'));
+        $search = $request->input('search');
+
+        if ($request->input('monthYear')) {
+            try {
+                [$tahun, $bulan] = explode('-', $request->input('monthYear'));
+            } catch (\Exception $e) {
+                // Keep default
+            }
+        }
+
+        $sectionName = "All_Sections";
+        if ($sectionId) {
+            $section = \App\Models\Section::find($sectionId);
+            if ($section)
+                $sectionName = str_replace(' ', '_', $section->section);
+        }
+
+        $bulanName = date('F', mktime(0, 0, 0, (int) $bulan, 10));
+        $filename = "monitoring_komitmen_k3_{$sectionName}_{$bulanName}_{$tahun}_" . date('Ymd_His') . ".xlsx";
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\KomitmenK3Export($sectionId, $bulan, $tahun, $search),
+            $filename
+        );
+    }
+
 
     public function getlaporank3(Request $request)
     {
@@ -463,16 +495,22 @@ class KomitmenK3Controller extends Controller
 
         $komitmens = $query->latest('updated_at')->paginate(10)->withQueryString();
 
-        $totalUserTarget = User::where('section_id', $sectionId)
-            ->where('is_active', 1)
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($query) use ($search) {
-                    $query->where('nama', 'like', "%{$search}%")
+        // ✅ TARGET = SEMUA USER YANG TERDAFTAR DI PERIODE INI (SESUAI LOGIKA SUMMARY)
+        $totalUserTarget = KomitmenK3::whereHas('user', function ($q) use ($sectionId, $search) {
+            $q->where('section_id', $sectionId);
+            if ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('nama', 'like', "%{$search}%")
                         ->orWhere('nip', 'like', "%{$search}%");
                 });
-            })
-            ->count();
+            }
+        })
+            ->whereYear('created_at', $tahun)
+            ->whereMonth('created_at', $bulan)
+            ->distinct('user_id')
+            ->count('user_id');
 
+        // ✅ AKTUAL = USER YANG SUDAH UPLOAD
         $totalUserAktualQuery = KomitmenK3::whereHas('user', function ($q) use ($sectionId, $search) {
             $q->where('section_id', $sectionId);
             if ($search) {
@@ -481,7 +519,8 @@ class KomitmenK3Controller extends Controller
                         ->orWhere('nip', 'like', "%{$search}%");
                 });
             }
-        });
+        })
+            ->where('status', 'Sudah Upload');
 
         if ($bulan) {
             $totalUserAktualQuery->whereMonth('created_at', $bulan);

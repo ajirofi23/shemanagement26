@@ -2,7 +2,6 @@
 
 @section('content')
     @php
-        // Status badge colors
         $statusColors = [
             'Open' => 'danger',
             'Progress' => 'warning',
@@ -11,58 +10,150 @@
         ];
     @endphp
 
-    <div class="content p-3">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 style="color:#0f172a;" class="fw-bold">
-                <i class="bi bi-shield-check me-2 text-info"></i> Laporan Safety Patrol
-            </h3>
+    <style>
+        :root {
+            --primary-bold: #4f46e5;
+            --secondary-text: #64748b;
+        }
 
-            <button type="button" class="btn btn-info shadow-sm text-white" data-bs-toggle="modal"
+        .content {
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .modern-card {
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Table Improvements */
+        .modern-table thead th {
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        .modern-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-action:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .badge-pill-modern {
+            padding: 0.4em 0.8em;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        .bg-soft-info {
+            background-color: #e0f2fe;
+            color: #075985;
+        }
+
+        .bg-soft-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .bg-soft-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .bg-soft-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .bg-soft-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+    </style>
+
+    <div class="content p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 style="color:#0f172a;" class="fw-bold m-0">
+                    <i class="bi bi-shield-check me-2 text-primary"></i> Laporan Safety Patrol
+                </h3>
+                <p class="text-muted small mb-0">Manajemen temuan dan tindak lanjut patroli keselamatan kerja.</p>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-sm px-3 shadow-sm" data-bs-toggle="modal"
                 data-bs-target="#addSafetyPatrolModal">
-                <i class="bi bi-plus-circle me-1"></i> Buat Laporan Baru
+                <i class="bi bi-plus-circle me-1"></i> Buat Laporan
             </button>
         </div>
 
-        <hr class="mb-4">
-
-        <div class="card shadow-lg border-0">
+        <div class="card modern-card mb-4">
             <div class="card-body p-3">
-                <h5 class="card-title mb-3 fs-5 text-secondary">
-                    <i class="bi bi-list-columns-reverse me-1"></i> Daftar Laporan Safety Patrol
-                </h5>
-
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <form action="{{ url('/she/safety-patrol') }}" method="GET" class="d-flex flex-grow-1 me-3">
-                        <div class="input-group">
-                            <input type="text" id="searchInput" name="search" value="{{ request('search') }}"
-                                class="form-control border-info" style="max-width: 300px;" placeholder="">
-                            <button type="submit" class="btn btn-info text-white">
-                                <i class="bi bi-search"></i> Cari
-                            </button>
-                        </div>
-                    </form>
-
-                    <a href="{{ url('/she/safety-patrol/export') }}" class="btn btn-success shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-search me-2 text-primary"></i> Filter & Pencarian
+                    </h6>
+                    <a href="{{ url('/she/safety-patrol/export') }}" class="btn btn-success btn-sm px-3">
                         <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Excel
                     </a>
                 </div>
+                <form action="{{ url('/she/safety-patrol') }}" method="GET" class="row g-2">
+                    <div class="col-md-5">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i
+                                    class="bi bi-search"></i></span>
+                            <input type="text" id="searchInput" name="search" value="{{ request('search') }}"
+                                class="form-control border-start-0" placeholder="Cari E-PORTE atau Area...">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Cari Data</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
+        <div class="card modern-card">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mt-3 align-middle table-sm">
+                    <table class="table modern-table align-middle mb-0">
                         <thead class="table-dark">
                             <tr>
-                                <th style="width: 30px;">No</th>
-                                <th style="width: 120px;">Tanggal</th>
-                                <th style="width: 120px;">E-PORTE</th>
-                                <th>Area</th>
-                                <th>Problem</th>
-                                <th>Counter Measure</th>
-                                <th style="width: 80px;">Section</th>
+                                <th class="ps-4" style="width: 50px;">No</th>
+                                <th style="width: 100px;">Tanggal</th>
+                                <th style="width: 100px;">E-PORTE</th>
+                                <th>Area & Problem</th>
+                                <th style="width: 100px;">Section</th>
                                 <th style="width: 100px;">Due Date</th>
-                                <th style="width: 80px;">Foto Before</th>
-                                <th style="width: 80px;">Foto After</th>
-                                <th style="width: 70px;">Status</th>
-                                <th style="width: 180px;">Action</th>
+                                <th class="text-center" style="width: 80px;">Foto</th>
+                                <th class="text-center" style="width: 80px;">Status</th>
+                                <th class="pe-4 text-end" style="width: 150px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -71,75 +162,72 @@
                                     $statusBadge = $statusColors[$laporan->status] ?? 'secondary';
                                 @endphp
                                 <tr>
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($laporan->tanggal)->format('d-m-Y') }}</td>
-                                    <td>{{ $laporan->eporte }}</td>
-                                    <td>{{ $laporan->area }}</td>
-                                    <td>{{ Str::limit($laporan->problem, 50) }}</td>
-                                    <td>{{ Str::limit($laporan->counter_measure, 50) }}</td>
-                                    <td>{{ $laporan->section->section ?? 'N/A' }}</td>
-                                    <td>{{ $laporan->due_date ? \Carbon\Carbon::parse($laporan->due_date)->format('d-m-Y') : '-' }}
+                                    <td class="ps-4 text-muted small fw-bold">#{{ $loop->iteration }}</td>
+                                    <td class="small">{{ \Carbon\Carbon::parse($laporan->tanggal)->format('d/m/Y') }}</td>
+                                    <td class="fw-bold small">{{ $laporan->eporte }}</td>
+                                    <td>
+                                        <div class="fw-bold text-dark small" title="{{ $laporan->area }}">
+                                            {{ Str::limit($laporan->area, 30) }}</div>
+                                        <div class="text-muted small" style="font-size: 0.7rem;"
+                                            title="{{ $laporan->problem }}">{{ Str::limit($laporan->problem, 40) }}</div>
+                                    </td>
+                                    <td class="small">{{ $laporan->section->section ?? 'N/A' }}</td>
+                                    <td class="small fw-semibold text-primary">
+                                        {{ $laporan->due_date ? \Carbon\Carbon::parse($laporan->due_date)->format('d/m/Y') : '-' }}
                                     </td>
                                     <td class="text-center">
-                                        @if($laporan->foto_before)
-                                            <span class="badge bg-info">
-                                                <i class="bi bi-camera"></i> 1
-                                            </span>
-                                        @else
-                                            <span class="badge bg-secondary">-</span>
-                                        @endif
+                                        <div class="d-flex justify-content-center gap-1">
+                                            @if($laporan->foto_before) <i class="bi bi-image text-primary" title="Before"></i>
+                                            @endif
+                                            @if($laporan->foto_after) <i class="bi bi-image-fill text-success"
+                                            title="After"></i> @endif
+                                            @if(!$laporan->foto_before && !$laporan->foto_after) <span
+                                            class="text-muted">-</span> @endif
+                                        </div>
                                     </td>
                                     <td class="text-center">
-                                        @if($laporan->foto_after)
-                                            <span class="badge bg-success">
-                                                <i class="bi bi-check-circle"></i> 1
-                                            </span>
-                                        @else
-                                            <span class="badge bg-secondary">-</span>
-                                        @endif
+                                        @php
+                                            $badgeClass = [
+                                                'Open' => 'bg-soft-danger',
+                                                'Progress' => 'bg-soft-warning',
+                                                'Close' => 'bg-soft-success',
+                                                'Rejected' => 'bg-soft-secondary'
+                                            ][$laporan->status] ?? 'bg-soft-secondary';
+                                        @endphp
+                                        <span class="badge-pill-modern {{ $badgeClass }}">{{ $laporan->status }}</span>
                                     </td>
-                                    <td>
-                                        <span class="badge bg-{{ $statusBadge }}">{{ $laporan->status }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            <!-- Tombol Tindak Lanjut untuk SHE -->
-                                            @if(isset($permission) && $permission->can_edit && ($laporan->status === 'Progress'))
-                                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                                    data-bs-target="#tindakLanjutModal{{ $laporan->id }}" title="Tindak Lanjut">
-                                                    <i class="bi bi-check-circle"></i> Tindak Lanjut
+                                    <td class="pe-4 text-end">
+                                        <div class="d-flex justify-content-end gap-1">
+                                            @if(isset($permission) && $permission->can_edit && ($laporan->status === 'Progress' || $laporan->status === 'Open'))
+                                                <button type="button" class="btn-action bg-soft-success text-success"
+                                                    data-bs-toggle="modal" data-bs-target="#tindakLanjutModal{{ $laporan->id }}"
+                                                    title="Tindak Lanjut">
+                                                    <i class="bi bi-check2-circle"></i>
                                                 </button>
                                             @endif
 
                                             @if(isset($permission) && $permission->can_edit && $laporan->status === 'Open')
-                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#editSafetyPatrolModal{{ $laporan->id }}" title="Edit Data">
+                                                <button type="button" class="btn-action bg-soft-warning text-warning"
+                                                    data-bs-toggle="modal" data-bs-target="#editSafetyPatrolModal{{ $laporan->id }}"
+                                                    title="Edit">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
                                             @endif
 
-                                            <!-- Tombol Lihat Detail (Gabungan Before & After) -->
                                             @if($laporan->foto_before || $laporan->foto_after)
-                                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                                    data-bs-target="#viewDetailModal{{ $laporan->id }}" title="Lihat Detail">
-                                                    <i class="bi bi-eye"></i> Detail
-                                                    @if($laporan->foto_before)
-                                                        <span class="badge bg-light text-dark ms-1">1</span>
-                                                    @endif
-                                                    @if($laporan->foto_after)
-                                                        <span class="badge bg-success text-white ms-1">1</span>
-                                                    @endif
+                                                <button type="button" class="btn-action bg-soft-info text-info"
+                                                    data-bs-toggle="modal" data-bs-target="#viewDetailModal{{ $laporan->id }}"
+                                                    title="Detail">
+                                                    <i class="bi bi-eye"></i>
                                                 </button>
                                             @endif
 
                                             @if(isset($permission) && $permission->can_delete && $laporan->status === 'Open')
                                                 <form action="{{ url('/she/safety-patrol/destroy/' . $laporan->id) }}" method="POST"
-                                                    style="display:inline-block;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger"
-                                                        onclick="return confirm('Yakin hapus Laporan Safety Patrol ini?')"
-                                                        title="Hapus Data">
+                                                    class="d-inline">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="btn-action bg-soft-danger text-danger"
+                                                        onclick="return confirm('Hapus laporan ini?')" title="Hapus">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </form>
@@ -210,13 +298,13 @@
                     const imgDiv = document.createElement('div');
                     imgDiv.className = 'col-md-6 mb-2';
                     imgDiv.innerHTML = `
-                    <div class="card">
-                        <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                        <div class="card-body p-2 text-center">
-                            <small class="text-muted">${file.name}</small>
+                        <div class="card">
+                            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="card-body p-2 text-center">
+                                <small class="text-muted">${file.name}</small>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
                     preview.appendChild(imgDiv);
                 }
 
@@ -394,7 +482,8 @@
                                                 class="badge bg-{{ $statusColors[$laporan->status] ?? 'secondary' }}">{{ $laporan->status }}</span>
                                         </li>
                                         <li>Due Date:
-                                            <strong>{{ \Carbon\Carbon::parse($laporan->due_date)->format('d-m-Y') }}</strong></li>
+                                            <strong>{{ \Carbon\Carbon::parse($laporan->due_date)->format('d-m-Y') }}</strong>
+                                        </li>
                                     </ul>
                                 </div>
 

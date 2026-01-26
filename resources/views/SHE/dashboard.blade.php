@@ -63,102 +63,98 @@
             font-size: 0.95rem;
         }
 
-        /* Filter Section */
+        /* Filter Section Compact */
         .filter-section {
             background: #ffffff;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .filter-title {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 12px;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .filter-title i {
-            color: #6b7280;
-        }
-
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
+            border-radius: 12px;
+            padding: 12px 16px;
             margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-form-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .filter-group {
+            flex: 1;
+            min-width: 150px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
 
         .filter-label {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #4b5563;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
         }
 
         .filter-input,
         .filter-select {
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            color: #1f2937;
-            background: #ffffff;
-            transition: border-color 0.2s;
+            padding: 7px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #1e293b;
+            background: #f8fafc;
+            width: 100%;
+            transition: all 0.2s;
         }
 
         .filter-input:focus,
         .filter-select:focus {
             outline: none;
             border-color: #3b82f6;
+            background: #fff;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .filter-actions {
             display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #f3f4f6;
+            gap: 8px;
         }
 
         .filter-btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 500;
+            height: 38px;
+            padding: 0 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-apply {
             background: #3b82f6;
             color: white;
+            border: none;
         }
 
         .btn-apply:hover {
             background: #2563eb;
+            transform: translateY(-1px);
         }
 
         .btn-reset {
-            background: #f3f4f6;
-            color: #4b5563;
-            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
         }
 
         .btn-reset:hover {
-            background: #e5e7eb;
+            background: #f8fafc;
+            color: #1e293b;
         }
 
         /* Top bar */
@@ -772,23 +768,18 @@
             <div class="page-title fade-up">DASHBOARD MONITORING</div>
             <div class="page-subtitle fade-up">Summary of safety performance AICC</div>
 
-            <!-- Filter Section -->
+            <!-- Filter Section Compact -->
             <div class="filter-section fade-up">
-                <div class="filter-title">
-                    <i class="fas fa-filter"></i>
-                    Filter Data Dashboard
-                </div>
-
                 <form id="filterForm" method="GET" action="{{ url('/she/dashboard') }}">
-                    <div class="filter-grid">
+                    <div class="filter-form-row">
                         <div class="filter-group">
-                            <label class="filter-label" for="start_date">Tanggal Awal</label>
+                            <label class="filter-label" for="start_date">Mulai</label>
                             <input type="date" id="start_date" name="start_date" class="filter-input"
                                 value="{{ request('start_date', date('Y-m-d', strtotime('-30 days'))) }}">
                         </div>
 
                         <div class="filter-group">
-                            <label class="filter-label" for="end_date">Tanggal Akhir</label>
+                            <label class="filter-label" for="end_date">Sampai</label>
                             <input type="date" id="end_date" name="end_date" class="filter-input"
                                 value="{{ request('end_date', date('Y-m-d')) }}">
                         </div>
@@ -796,7 +787,7 @@
                         <div class="filter-group">
                             <label class="filter-label" for="section">Section</label>
                             <select id="section" name="section" class="filter-select">
-                                <option value="">-- Semua Section --</option>
+                                <option value="">Semua Section</option>
                                 @foreach($sections as $section)
                                     <option value="{{ $section->id }}" {{ request('section') == $section->id ? 'selected' : '' }}>
                                         {{ $section->section }}
@@ -805,25 +796,14 @@
                             </select>
                         </div>
 
-                        <!-- <div class="filter-group">
-                                <label class="filter-label" for="status">Status</label>
-                                <select id="status" name="status" class="filter-select">
-                                    <option value="">-- Semua Status --</option>
-                                    <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
-                                    <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
-                                    <option value="progress" {{ request('status') == 'progress' ? 'selected' : '' }}>In Progress
-                                    </option>
-                                </select>
-                            </div> -->
-                    </div>
-
-                    <div class="filter-actions">
-                        <button type="reset" class="filter-btn btn-reset" onclick="resetFilters()">
-                            <i class="fas fa-redo"></i> Reset
-                        </button>
-                        <button type="submit" class="filter-btn btn-apply">
-                            <i class="fas fa-check"></i> Terapkan Filter
-                        </button>
+                        <div class="filter-actions">
+                            <button type="submit" class="filter-btn btn-apply">
+                                <i class="fas fa-filter"></i> Terapkan
+                            </button>
+                            <button type="button" class="filter-btn btn-reset" onclick="resetFilters()">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1149,6 +1129,91 @@
                 </div>
             </div>
 
+            <!-- Safety Performance Matrix Section -->
+            <div class="matrix-container fade-up" style="margin-top: 24px;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-800 m-0">Safety Performance Matrix</h5>
+                    <button class="btn btn-success btn-sm rounded-pill px-3 border shadow-sm"
+                        onclick="exportMatrixToExcel()">
+                        <i class="fas fa-file-excel me-2"></i> Export Excel
+                    </button>
+                </div>
+
+                <div class="matrix-scroll">
+                    <table class="table table-bordered table-sm align-middle text-center matrix-table" id="matrixTable">
+                        <thead>
+                            <!-- Header Row 1: Main Labels -->
+                            <tr>
+                                <th rowspan="3" class="sticky-col sticky-col-no">NO</th>
+                                <th rowspan="3" class="sticky-col sticky-col-item">ITEM</th>
+
+                                @foreach($matrixData['header']['historical_labels'] as $label)
+                                    <th rowspan="3" class="col-hist">{{ $label }}</th>
+                                @endforeach
+
+                                <th colspan="13" class="col-month">{{ $matrixData['header']['fiscal_label'] }}</th>
+                                <th colspan="{{ $matrixData['header']['days_in_month'] + 1 }}" class="col-day">
+                                    {{ $matrixData['header']['fiscal_label'] }}
+                                </th>
+                            </tr>
+
+                            <!-- Header Row 2: Months & Specific Month Label -->
+                            <tr>
+                                @php
+                                    $monthNames = ['APR', 'MAY', 'JUN', 'JUL', 'AGS', 'SEP', 'OKT', 'NOP', 'DES', 'JAN', 'PEB', 'MAR'];
+                                @endphp
+                                @foreach($monthNames as $mName)
+                                    <th rowspan="2" class="col-month">{{ $mName }}</th>
+                                @endforeach
+                                <th rowspan="2" class="col-total col-month">JML</th>
+
+                                <th colspan="{{ $matrixData['header']['days_in_month'] + 1 }}" class="col-day">
+                                    {{ $matrixData['header']['month_label'] }}
+                                </th>
+                            </tr>
+
+                            <!-- Header Row 3: Days -->
+                            <tr>
+                                @for($d = 1; $d <= 31; $d++)
+                                    @if($d <= $matrixData['header']['days_in_month'])
+                                        <th class="col-day">{{ $d }}</th>
+                                    @endif
+                                @endfor
+                                <th class="col-total col-day">JML</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php $rowNo = 1; @endphp
+                            @foreach($matrixData['matrix'] as $item => $data)
+                                <tr>
+                                    <td class="sticky-col sticky-col-no">{{ $rowNo++ }}</td>
+                                    <td class="sticky-col sticky-col-item matrix-item-name">{{ $item }}</td>
+
+                                    <!-- Historical -->
+                                    @foreach($data['historical'] as $val)
+                                        <td class="col-hist">{{ $val }}</td>
+                                    @endforeach
+
+                                    <!-- Months -->
+                                    @foreach($data['months'] as $val)
+                                        <td class="col-month">{{ $val }}</td>
+                                    @endforeach
+                                    <td class="col-total col-month">{{ $data['total_fiscal'] }}</td>
+
+                                    <!-- Days -->
+                                    @foreach($data['days'] as $val)
+                                        @if($val !== null)
+                                            <td class="col-day">{{ $val }}</td>
+                                        @endif
+                                    @endforeach
+                                    <td class="col-total col-day">{{ $data['total_month'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
 
 
 
@@ -1166,7 +1231,7 @@
                     @endif
                     | Terakhir diperbarui: {{ now()->format('H:i:s') }}
                 </span> <button onclick="refreshDashboard()" style="margin-left: 10px; padding: 2px 8px; font-size: 0.8rem; background: #3b82f6; color: white;
-                            border: none; border-radius: 4px; cursor: pointer;">
+                                        border: none; border-radius: 4px; cursor: pointer;">
                     Refresh
                 </button>
             </div>
@@ -1228,17 +1293,26 @@
         });
 
         function resetFilters() {
-            document.getElementById('filterForm').reset();
+            const filterForm = document.getElementById('filterForm');
+            if (filterForm) filterForm.reset();
 
             // Set nilai default
             const today = new Date().toISOString().split('T')[0];
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            document.getElementById('end_date').value = today;
-            document.getElementById('start_date').value = thirtyDaysAgo.toISOString().split('T')[0];
-            document.getElementById('section').value = '';
-            document.getElementById('status').value = '';
+            const endDateEl = document.getElementById('end_date');
+            const startDateEl = document.getElementById('start_date');
+            const sectionEl = document.getElementById('section');
+            const statusEl = document.getElementById('status');
+
+            if (endDateEl) endDateEl.value = today;
+            if (startDateEl) startDateEl.value = thirtyDaysAgo.toISOString().split('T')[0];
+            if (sectionEl) sectionEl.value = '';
+            if (statusEl) statusEl.value = '';
+
+            // Re-apply filter automatically after reset
+            if (filterForm) filterForm.submit();
         }
 
         function refreshDashboard() {
@@ -1298,9 +1372,9 @@
                         }) : 'Semua';
 
                         lastUpdateEl.innerHTML = `
-                                                Data periode: ${startDateFormatted} - ${endDateFormatted}
-                                                | Terakhir diperbarui: ${now.toLocaleTimeString('id-ID')}
-                                            `;
+                                                            Data periode: ${startDateFormatted} - ${endDateFormatted}
+                                                            | Terakhir diperbarui: ${now.toLocaleTimeString('id-ID')}
+                                                        `;
 
                         // Cek loss day
                         checkTodayLossDay();
@@ -1451,26 +1525,26 @@
             const notif = document.createElement('div');
             notif.className = 'loss-day-notification';
             notif.style.cssText = `
-                        position: fixed;
-                        top: 70px;
-                        right: 20px;
-                        background: #dc2626;
-                        color: white;
-                        padding: 14px 18px;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 12px rgba(220,38,38,0.3);
-                        z-index: 1000;
-                        animation: slideIn 0.3s ease-out;
-                    `;
+                                    position: fixed;
+                                    top: 70px;
+                                    right: 20px;
+                                    background: #dc2626;
+                                    color: white;
+                                    padding: 14px 18px;
+                                    border-radius: 8px;
+                                    box-shadow: 0 4px 12px rgba(220,38,38,0.3);
+                                    z-index: 1000;
+                                    animation: slideIn 0.3s ease-out;
+                                `;
             notif.innerHTML = `
-                        <strong>⚠️ PERINGATAN!</strong><br>
-                        Terdapat Work Accident (Loss day) <b>hari ini</b>.<br>
-                        Total Safety Work Day akan direset besok.
-                        <button onclick="this.parentElement.remove()"
-                            style="position:absolute;top:6px;right:8px;background:none;border:none;color:white;font-size:16px;cursor:pointer;">
-                            ×
-                        </button>
-                    `;
+                                    <strong>⚠️ PERINGATAN!</strong><br>
+                                    Terdapat Work Accident (Loss day) <b>hari ini</b>.<br>
+                                    Total Safety Work Day akan direset besok.
+                                    <button onclick="this.parentElement.remove()"
+                                        style="position:absolute;top:6px;right:8px;background:none;border:none;color:white;font-size:16px;cursor:pointer;">
+                                        ×
+                                    </button>
+                                `;
             document.body.appendChild(notif);
 
             setTimeout(() => notif.remove(), 10000);
@@ -1480,20 +1554,20 @@
             const notif = document.createElement('div');
             notif.className = 'loss-day-notification';
             notif.style.cssText = `
-                        position: fixed;
-                        top: 70px;
-                        right: 20px;
-                        background: #16a34a;
-                        color: white;
-                        padding: 12px 16px;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 12px rgba(22,163,74,0.3);
-                        z-index: 1000;
-                    `;
+                                    position: fixed;
+                                    top: 70px;
+                                    right: 20px;
+                                    background: #16a34a;
+                                    color: white;
+                                    padding: 12px 16px;
+                                    border-radius: 8px;
+                                    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+                                    z-index: 1000;
+                                `;
             notif.innerHTML = `
-                        <strong>✅ BAGUS!</strong><br>
-                        Hari ini tidak ada Accident.
-                    `;
+                                    <strong>✅ BAGUS!</strong><br>
+                                    Hari ini tidak ada Accident.
+                                `;
             document.body.appendChild(notif);
 
             setTimeout(() => notif.remove(), 5000);
@@ -1503,21 +1577,43 @@
         // Tambahkan style untuk animasi
         const style = document.createElement('style');
         style.textContent = `
-                                @keyframes slideIn {
-                                    from { transform: translateX(100%); opacity: 0; }
-                                    to { transform: translateX(0); opacity: 1; }
-                                }
+                                            @keyframes slideIn {
+                                                from { transform: translateX(100%); opacity: 0; }
+                                                to { transform: translateX(0); opacity: 1; }
+                                            }
 
-                                .filter-input[type="date"]::-webkit-calendar-picker-indicator {
-                                    cursor: pointer;
-                                    opacity: 0.6;
-                                }
+                                            .filter-input[type="date"]::-webkit-calendar-picker-indicator {
+                                                cursor: pointer;
+                                                opacity: 0.6;
+                                            }
 
-                                .filter-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-                                    opacity: 1;
-                                }
-                            `;
+                                            .filter-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+                                                opacity: 1;
+                                            }
+                                        `;
         document.head.appendChild(style);
+
+        function exportMatrixToExcel() {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            const section = document.getElementById('section').value;
+            const status = document.getElementById('status').value;
+
+            let url = "{{ route('she.dashboard.exportMatrix') }}";
+            const params = new URLSearchParams();
+
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (section) params.append('section', section);
+            if (status) params.append('status', status);
+
+            const queryString = params.toString();
+            if (queryString) {
+                url += '?' + queryString;
+            }
+
+            window.location.href = url;
+        }
     </script>
 
 @endsection

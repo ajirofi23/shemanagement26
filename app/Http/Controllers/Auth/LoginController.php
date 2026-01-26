@@ -25,7 +25,7 @@ class LoginController extends Controller
     {
         // Validasi input
         $request->validate([
-            'usr'  => 'required',
+            'usr' => 'required',
             'pswd' => 'required',
         ]);
 
@@ -50,8 +50,20 @@ class LoginController extends Controller
 
         session(['user_permissions' => $permissions]);
 
-        // ================= REDIRECT MENU =================
+        // ================= REDIRECT DASHBOARD (PRIORITY) =================
+        $level = strtoupper($user->level);
 
+        if ($level === 'SHE') {
+            return redirect('/she/dashboard');
+        } elseif ($level === 'IT' || $level === 'ADMIN') {
+            return redirect('/it/dashboard');
+        } elseif ($level === 'PIC') {
+            return redirect('/pic/dashboard');
+        } elseif ($level === 'MANAGER') {
+            return redirect('/manager/dashboard');
+        }
+
+        // FALLBACK: Redirect ke menu pertama jika level tidak dikenal
         $firstMenu = DB::table('tb_user_permissions as up')
             ->join('tb_menus as m', 'm.id', '=', 'up.menu_id')
             ->where('up.user_id', $user->id)

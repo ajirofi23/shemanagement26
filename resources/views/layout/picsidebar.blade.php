@@ -35,18 +35,18 @@
         /* ---------------------------- SIDEBAR STYLES ---------------------------- */
         .sidebar {
             width: 260px;
-            background: linear-gradient(180deg, #64707e 0%, #717d8b 100%);
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
             color: white;
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
             padding: 24px 0;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             z-index: 1051;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Gaya untuk Logo/Brand Container */
@@ -101,26 +101,39 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 0.9rem 1.5rem;
-            color: rgba(255, 255, 255, 0.92);
+            padding: 0.85rem 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             font-weight: 500;
-            font-size: 1rem;
-            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            border-left: 4px solid transparent;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
             position: relative;
+            margin: 4px 12px;
+            border-radius: 12px;
         }
 
         .menu a:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
             transform: translateX(4px);
         }
 
         .menu a.active {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
-            border-left-color: #fca311;
+            font-weight: 600;
+        }
+
+        .menu a.active::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 20%;
+            height: 60%;
+            width: 4px;
+            background: #fca311;
+            border-radius: 0 4px 4px 0;
+            box-shadow: 0 0 10px rgba(252, 163, 17, 0.6);
         }
 
         .menu a i {

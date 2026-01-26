@@ -2,248 +2,275 @@
 
 @section('content')
 
-{{-- Tambahkan Custom CSS untuk visual yang lebih premium --}}
-<style>
-    .content { animation: fadeIn 0.6s ease-out; }
-    .card { border-radius: 15px; transition: all 0.3s ease; }
-    .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
-    .btn { border-radius: 8px; transition: all 0.3s ease; }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-    .table thead th { background-color: #1e293b; border: none; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
-    .badge { padding: 0.5em 0.8em; border-radius: 6px; }
-    .input-group .form-control:focus { box-shadow: none; border-color: #198754; }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-</style>
+    <style>
+        :root {
+            --primary-bold: #4f46e5;
+            --secondary-text: #64748b;
+        }
 
-<div class="content p-3">
+        .content {
+            background: #f8fafc;
+            min-height: 100vh;
+            animation: fadeIn 0.6s ease-out;
+        }
 
-    {{-- Header Halaman --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 style="color:#0f172a;" class="fw-bold mb-0">
-                <i class="bi bi-shield-check me-2 text-success"></i> Data Komitmen K3
-            </h3>
-            <p class="text-muted small mb-0">Kelola dan pantau kepatuhan komitmen keselamatan kerja karyawan.</p>
-        </div>
+        .modern-card {
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
         
-        @if(!isset($isUploaded) || !$isUploaded)
-            {{-- Tombol disembunyikan sesuai logic awal --}}
-        @else
-        <button type="button" class="btn btn-primary shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#editKomitmenK3Modal{{ $userKomitmen->id ?? $user->id }}" title="Lihat/Edit Komitmen K3 Anda">
-            <i class="bi bi-pencil-square me-1"></i> Lihat/Edit Komitmen
-        </button>
-        @endif
-    </div>
-    
-    <hr class="mb-4 opacity-10">
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+        }
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-            <div class="d-flex align-items-center mb-4">
-                <div class="bg-light p-2 rounded-3 me-3">
-                    <i class="bi bi-list-columns-reverse text-primary fs-4"></i>
-                </div>
-                <div>
-                    <h5 class="card-title mb-0 fw-bold text-dark">Daftar Komitmen K3</h5>
-                    <small class="text-muted">Section: <span class="badge bg-info text-dark bg-opacity-10">{{ $user->section->section ?? 'N/A' }}</span></small>
-                </div>
+        /* Table Improvements */
+        .modern-table thead th {
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        .modern-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+        }
+
+        .btn-action:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+            background: #f8fafc;
+        }
+
+        .badge-soft-primary {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .badge-soft-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-soft-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <div class="content p-4">
+        {{-- Header Halaman --}}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 style="color:#0f172a;" class="fw-bold m-0">
+                    <i class="bi bi-shield-check me-2 text-success"></i>Data Komitmen K3
+                </h3>
+                <p class="text-muted small mb-0">Kelola dan pantau kepatuhan komitmen keselamatan kerja karyawan di section <strong>{{ $user->section->section ?? 'N/A' }}</strong>.</p>
             </div>
-            
-            @if(session('sync_message'))
-                <div class="alert alert-{{ session('sync_status') ?? 'success' }} alert-dismissible fade show border-0 shadow-sm" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i> {{ session('sync_message') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
 
-            {{-- Toolbar: Sync, Filter, Search, Export --}}
-            <div class="row g-3 mb-4">
-                {{-- 1. Sync Button --}}
-                <div class="col-auto">
-                    <form action="{{ url('/pic/komitmenk3/sync') }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-warning shadow-sm fw-semibold" 
-                            @if(isset($canSync) && !$canSync) disabled @endif
-                            title="{{ (isset($canSync) && !$canSync) ? 'Sudah disinkronkan bulan ini' : 'Tarik data karyawan terbaru' }}">
-                            <i class="bi bi-arrow-clockwise me-1"></i> Tarik Data
-                        </button>
-                    </form>
-                    @if(isset($lastSyncDate))
-                        <div class="text-muted" style="font-size: 0.7rem; margin-top: 4px;">Terakhir: {{ $lastSyncDate }}</div>
-                    @endif
-                </div>
+            <div class="d-flex gap-2">
+                @if(isset($isUploaded) && $isUploaded)
+                    <button type="button" class="btn btn-primary btn-sm px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#editKomitmenK3Modal{{ $userKomitmen->id ?? $user->id }}">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Komitmen Saya
+                    </button>
+                @endif
+                <a href="{{ url('/pic/komitmenk3/export') }}?bulan={{ request('bulan', date('n')) }}&tahun={{ request('tahun', date('Y')) }}" class="btn btn-success btn-sm px-3 shadow-sm">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Excel
+                </a>
+            </div>
+        </div>
 
-                {{-- 2. Filter --}}
-                <div class="col-auto">
-                    <form action="{{ url('/pic/komitmenk3') }}" method="GET" class="d-flex gap-2">
-                        <select name="bulan" class="form-select shadow-sm" style="width: 130px; border-radius: 8px;">
-                            <option value="">Bulan</option>
-                            @for ($m = 1; $m <= 12; $m++)
-                                <option value="{{ $m }}" {{ request('bulan') == $m ? 'selected' : '' }}>{{ date('F', mktime(0, 0, 0, $m, 10)) }}</option>
-                            @endfor
-                        </select>
-                        <select name="tahun" class="form-select shadow-sm" style="width: 110px; border-radius: 8px;">
-                            <option value="">Tahun</option>
-                            @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
-                                <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>{{ $y }}</option>
-                            @endfor
-                        </select>
-                        <button type="submit" class="btn btn-dark shadow-sm">
-                            <i class="bi bi-filter"></i>
-                        </button>
-                    </form>
-                </div>
+        {{-- Filter & Sync Toolbar --}}
+        <div class="card modern-card mb-4">
+            <div class="card-body p-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-auto">
+                        <form action="{{ url('/pic/komitmenk3/sync') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-warning btn-sm fw-bold shadow-sm px-3" 
+                                @if(isset($canSync) && !$canSync) disabled @endif
+                                title="{{ (isset($canSync) && !$canSync) ? 'Sudah disinkronkan bulan ini' : 'Tarik data karyawan terbaru' }}">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Tarik Data Karyawan
+                            </button>
+                            @if(isset($lastSyncDate))
+                                <div class="text-muted mt-1" style="font-size: 0.65rem;">Terakhir: {{ $lastSyncDate }}</div>
+                            @endif
+                        </form>
+                    </div>
 
-                {{-- 3. Search & Export --}}
-                <div class="col ms-md-auto">
-                    <div class="d-flex gap-2 justify-content-md-end">
-                        <form action="{{ url('/pic/komitmenk3') }}" method="GET" class="d-flex flex-grow-1" style="max-width: 350px;">
-                            <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
-                                <input type="hidden" name="bulan" value="{{ request('bulan') }}">
-                                <input type="hidden" name="tahun" value="{{ request('tahun') }}">
-                                <input type="text" id="searchInput" name="search" value="{{ request('search') }}" class="form-control border-0 bg-light" placeholder="Cari...">
-                                <button type="submit" class="btn btn-success border-0 px-3">
-                                    <i class="bi bi-search"></i>
-                                </button>
+                    <div class="col-md-auto">
+                        <form action="{{ url('/pic/komitmenk3') }}" method="GET" id="filterForm" class="d-flex gap-2 align-items-end">
+                            <div style="min-width: 130px;">
+                                <label class="form-label small fw-bold text-secondary mb-1">Bulan</label>
+                                <select name="bulan" class="form-select form-select-sm shadow-sm" onchange="this.form.submit()">
+                                    @for ($m = 1; $m <= 12; $m++)
+                                        <option value="{{ $m }}" {{ request('bulan', date('n')) == $m ? 'selected' : '' }}>
+                                            {{ date('F', mktime(0, 0, 0, $m, 10)) }}
+                                        </option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div style="min-width: 100px;">
+                                <label class="form-label small fw-bold text-secondary mb-1">Tahun</label>
+                                <select name="tahun" class="form-select form-select-sm shadow-sm" onchange="this.form.submit()">
+                                    @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
+                                        <option value="{{ $y }}" {{ request('tahun', date('Y')) == $y ? 'selected' : '' }}>{{ $y }}</option>
+                                    @endfor
+                                </select>
                             </div>
                         </form>
-                        <a href="{{ url('/pic/komitmenk3/export') }}?bulan={{ request('bulan') }}&tahun={{ request('tahun') }}" class="btn btn-outline-primary shadow-sm fw-semibold px-3">
-                            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Excel
-                        </a>
+                    </div>
+
+                    <div class="col-md">
+                        <form action="{{ url('/pic/komitmenk3') }}" method="GET">
+                            <input type="hidden" name="bulan" value="{{ request('bulan', date('n')) }}">
+                            <input type="hidden" name="tahun" value="{{ request('tahun', date('Y')) }}">
+                            <label class="form-label small fw-bold text-secondary mb-1">Cari Karyawan / NIP</label>
+                            <div class="input-group input-group-sm shadow-sm">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-search"></i></span>
+                                <input type="text" id="searchInput" name="search" value="{{ request('search') }}" 
+                                    class="form-control border-start-0 ps-0" placeholder="Cari Nama atau NIP...">
+                                <button type="submit" class="btn btn-primary px-3">Cari</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
+        </div>
 
-            {{-- Tabel --}}
-            <div class="table-responsive rounded-3 overflow-hidden border">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr class="text-white">
-                            <th class="py-3 ps-3">No</th>
-                            <th class="py-3">Karyawan</th>
-                            <th class="py-3">NIP</th>
-                            <th class="py-3">Unit Kerja</th>
-                            <th class="py-3">Status</th>
-                            <th class="py-3">Ringkasan Komitmen</th>
-                            <th class="py-3 text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white">
-                        @forelse($komitmens as $data)
-                        <tr style="transition: all 0.2s;">
-                            <td class="ps-3 text-muted">{{ $loop->iteration }}</td>
-                            <td>
-                                <div class="fw-bold text-dark">{{ $data->user->nama ?? 'N/A' }}</div>
-                            </td>
-                            <td><span class="badge bg-light text-dark border">{{ $data->user->nip ?? 'N/A' }}</span></td>
-                            <td>
-                                <div class="small fw-semibold text-dark">{{ $data->user->section->section ?? 'N/A' }}</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">{{ $data->user->section->department ?? 'N/A' }}</div>
-                            </td>
-                            <td>
-                                @if($data->bukti)
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
-                                        <i class="bi bi-check2-circle me-1"></i> Terunggah
-                                    </span>
-                                @else
-                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
-                                        <i class="bi bi-exclamation-circle me-1"></i> Belum
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                <p class="mb-0 text-muted small italic" title="{{ $data->komitmen }}">
-                                    {{ Str::limit($data->komitmen ?? 'Menunggu input komitmen...', 40) }}
-                                </p>
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group shadow-sm">
-                                    @if(isset($user) && $data->user && $data->user->section_id === $user->section_id)
-                                    <button type="button" class="btn btn-sm btn-white border"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editKomitmenK3Modal"
-                                        data-id="{{ $data->id }}"
-                                        data-user-id="{{ $data->user_id }}"
-                                        data-komitmen="{{ $data->komitmen }}">
-                                        <i class="bi bi-pencil text-primary"></i>
-                                    </button>
-                                    @endif
-
-                                    @if($data->bukti)
-                                    <button type="button" class="btn btn-sm btn-white border" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#viewBuktiModal{{ $data->id }}"
-                                        title="Lihat Bukti">
-                                        <i class="bi bi-eye text-info"></i>
-                                    </button>
-                                    @else
-                                    <button class="btn btn-sm btn-white border disabled text-light">
-                                        <i class="bi bi-eye-slash"></i>
-                                    </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <img src="https://illustrations.popsy.co/gray/data-report.svg" alt="Empty" style="height: 120px;" class="mb-3">
-                                <p class="text-muted">Tidak ada data Komitmen K3 untuk periode ini.</p>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        @if(session('sync_message'))
+            <div class="alert alert-{{ session('sync_status') ?? 'success' }} alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ session('sync_message') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            
-            @if(isset($komitmens) && method_exists($komitmens, 'links'))
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <small class="text-muted">Menampilkan {{ $komitmens->count() }} data</small>
+        @endif
+
+        {{-- Table Area --}}
+        <div class="card modern-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table modern-table align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="60px" class="ps-4">No</th>
+                                <th>Karyawan</th>
+                                <th>NIP</th>
+                                <th>Status</th>
+                                <th>Rangkuman Komitmen</th>
+                                <th width="120px" class="pe-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($komitmens as $data)
+                                <tr>
+                                    <td class="ps-4 text-muted small fw-bold">#{{ ($komitmens->currentPage()-1) * $komitmens->perPage() + $loop->iteration }}</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ $data->user->nama ?? 'N/A' }}</div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">{{ $data->user->section->section ?? 'N/A' }}</small>
+                                    </td>
+                                    <td>
+                                        <code class="text-primary fw-bold" style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">{{ $data->user->nip ?? 'N/A' }}</code>
+                                    </td>
+                                    <td>
+                                        @if($data->bukti)
+                                            <span class="badge badge-soft-success rounded-pill px-3">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Terunggah
+                                            </span>
+                                        @else
+                                            <span class="badge badge-soft-danger rounded-pill px-3">
+                                                <i class="bi bi-clock-history me-1"></i> Belum
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <p class="mb-0 text-muted small italic" title="{{ $data->komitmen }}">
+                                            {{ Str::limit($data->komitmen ?? 'Menunggu input komitmen...', 60) }}
+                                        </p>
+                                    </td>
+                                    <td class="pe-4 text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            @if($data->user_id === auth()->id())
+                                                <button type="button" class="btn-action text-primary"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editKomitmenK3Modal"
+                                                    data-id="{{ $data->id }}"
+                                                    data-user-id="{{ $data->user_id }}"
+                                                    data-komitmen="{{ $data->komitmen }}"
+                                                    title="Edit Komitmen">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </button>
+                                            @endif
+
+                                            @if($data->bukti)
+                                                <button type="button" class="btn-action text-info" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#viewBuktiModal{{ $data->id }}"
+                                                    title="Lihat Detail">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            @else
+                                                <button class="btn-action text-muted opacity-50" disabled>
+                                                    <i class="bi bi-eye-slash"></i>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <img src="https://illustrations.popsy.co/slate/empty-folder.svg" style="width: 150px;" class="mb-4">
+                                        <h5 class="fw-bold text-secondary">Tidak ada data ditemukan</h5>
+                                        <p class="text-muted small">Belum ada data komitmen K3 untuk periode ini.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if($komitmens->hasPages())
+            <div class="d-flex justify-content-between align-items-center mt-4 px-2">
+                <small class="text-muted">Menampilkan {{ $komitmens->firstItem() }} s/d {{ $komitmens->lastItem() }} dari {{ $komitmens->total() }} data</small>
                 <div>{{ $komitmens->links() }}</div>
             </div> 
-            @endif
-        </div>
+        @endif
     </div>
-</div>
-
-{{-- Script Placeholder (Tetap Sama) --}}
-<script>
-const placeholders = ["Cari Nama Karyawan", "Cari NIP", "Cari Komitmen K3"];
-let current = 0, index = 0, isDeleting = false;
-const speed = 100, delay = 1500;
-const input = document.getElementById("searchInput");
-
-function typePlaceholder() {
-    const currentPlaceholder = placeholders[current];
-    if (isDeleting) {
-        input.placeholder = currentPlaceholder.substring(0, index);
-        index--;
-        if (index < 0) {
-            isDeleting = false;
-            current = (current + 1) % placeholders.length;
-        }
-    } else {
-        input.placeholder = currentPlaceholder.substring(0, index);
-        index++;
-        if (index > currentPlaceholder.length) {
-            isDeleting = true;
-            setTimeout(typePlaceholder, delay);
-            return;
-        }
-    }
-    setTimeout(typePlaceholder, speed);
-}
-if (input && !input.value) typePlaceholder();
-</script>
 
 @endsection
 
 @section('modals')
-    {{-- Modal Logic (Tetap Sama agar tidak merusak fungsionalitas) --}}
+    {{-- Modal Update (Internal) --}}
     @php
         $targetKomitmen = $userKomitmen ?? (object)['id' => $user->id, 'komitmen' => '', 'bukti' => null, 'user_id' => $user->id];
     @endphp
@@ -288,48 +315,54 @@ if (input && !input.value) typePlaceholder();
     </div>
 
     @foreach($komitmens as $data)
-    @if($data->bukti)
-    <div class="modal fade" id="viewBuktiModal{{ $data->id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg"> 
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-                <div class="modal-header bg-dark text-white border-0" style="border-radius: 15px 15px 0 0;">
-                    <h5 class="modal-title"><i class="bi bi-image me-2"></i> Bukti: {{ $data->user->nama }}</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-0 text-center bg-light">
-                    <img src="{{ asset('storage/' . $data->bukti) }}" class="img-fluid w-100">
-                    <div class="p-4 bg-white text-start">
-                        <div class="badge bg-primary mb-2">Pesan Komitmen</div>
-                        <p class="text-dark fs-5 italic">"{{ $data->komitmen }}"</p>
-                        <hr class="opacity-10">
-                        <div class="small text-muted"><i class="bi bi-clock me-1"></i> Diunggah pada: {{ $data->created_at->format('d M Y, H:i') }}</div>
+        @if($data->bukti)
+            <div class="modal fade" id="viewBuktiModal{{ $data->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg"> 
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                        <div class="modal-header bg-dark text-white border-0" style="border-radius: 15px 15px 0 0;">
+                            <h5 class="modal-title"><i class="bi bi-image me-2"></i> Bukti: {{ $data->user->nama ?? 'N/A' }}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-0 text-center bg-light">
+                            <img src="{{ asset('storage/' . $data->bukti) }}" class="img-fluid w-100">
+                            <div class="p-4 bg-white text-start">
+                                <span class="badge bg-primary mb-2">Pesan Komitmen</span>
+                                <p class="text-dark fs-5 italic">"{{ $data->komitmen }}"</p>
+                                <hr class="opacity-10">
+                                <div class="small text-muted"><i class="bi bi-clock me-1"></i> Diunggah pada: {{ $data->created_at->format('d M Y, H:i') }}</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0">
+                            <a href="{{ asset('storage/' . $data->bukti) }}" target="_blank" class="btn btn-outline-dark btn-sm"><i class="bi bi-download me-1"></i> Download</a>
+                            <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Tutup</button>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <a href="{{ asset('storage/' . $data->bukti) }}" target="_blank" class="btn btn-outline-dark"><i class="bi bi-download me-1"></i> Download</a>
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
-                </div>
             </div>
-        </div>
-    </div>
-    @endif
+        @endif
     @endforeach
 
-<script>
-// Logic edit modal dynamic data (Tetap Sama)
-const editModal = document.getElementById('editKomitmenK3Modal');
-editModal.addEventListener('show.bs.modal', function (event) {
-    const button = event.relatedTarget;
-    if (!button || button.id === 'editKomitmenK3Modal{{ $userKomitmen->id ?? $user->id }}') return; 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const editModal = document.getElementById('editKomitmenK3Modal');
+            if (editModal) {
+                editModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    // Check if it's the specific header button (which has its own target)
+                    if (button.tagName === 'BUTTON' && button.hasAttribute('data-bs-target') && button.getAttribute('data-bs-target') !== '#editKomitmenK3Modal') return;
 
-    const id = button.getAttribute('data-id');
-    const userId = button.getAttribute('data-user-id');
-    const komitmen = button.getAttribute('data-komitmen') || '';
+                    const id = button.getAttribute('data-id');
+                    const userId = button.getAttribute('data-user-id');
+                    const komitmen = button.getAttribute('data-komitmen') || '';
 
-    const form = editModal.querySelector('form');
-    form.action = `/pic/komitmenk3/update/${id}`;
-    form.querySelector('input[name="user_id"]').value = userId;
-    form.querySelector('textarea[name="komitmen"]').value = komitmen;
-});
-</script>
+                    if (id && userId) {
+                        const form = editModal.querySelector('form');
+                        form.action = `/pic/komitmenk3/update/${id}`;
+                        form.querySelector('input[name="user_id"]').value = userId;
+                        form.querySelector('textarea[name="komitmen"]').value = komitmen;
+                    }
+                });
+            }
+        });
+    </script>
 @endsection

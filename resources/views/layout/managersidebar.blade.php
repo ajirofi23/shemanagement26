@@ -42,80 +42,83 @@
         /* ========================================================= */
         .sidebar {
             width: 260px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: white;
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            background: linear-gradient(180deg, #64707e 0%, #717d8b 100%);
-            color: #fff;
             padding: 24px 0;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
-            z-index: 1040;
-            /* DI BAWAH MODAL */
-            transition: all 0.3s ease;
+            z-index: 1051;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Gaya untuk Logo/Brand Container */
         .brand {
             text-align: center;
             padding: 0 1.25rem 2rem;
+            letter-spacing: -1px;
+            color: white;
+            overflow: hidden;
         }
 
+        /* Gaya untuk Gambar Logo */
         #sidebarLogo {
+            max-width: 100%;
+            height: auto;
             max-height: 40px;
+            margin: 0 auto;
+            display: block;
             transition: all 0.3s ease;
         }
 
         .menu {
             list-style: none;
-            padding: 0;
+            padding: 0 0 2rem;
             margin: 0;
             flex: 1;
-            overflow-y: auto;
-            /* Enable vertical scrolling */
-            overflow-x: hidden;
-            /* Hide horizontal scrolling */
-        }
-
-        /* Custom Scrollbar for Menu */
-        .menu::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .menu::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .menu::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-
-        .menu::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(255, 255, 255, 0.4);
         }
 
         .menu a {
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 0.9rem 1.5rem;
-            color: rgba(255, 255, 255, 0.9);
+            padding: 0.85rem 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             font-weight: 500;
-            border-left: 4px solid transparent;
-            transition: all 0.25s ease;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            position: relative;
+            margin: 4px 12px;
+            border-radius: 12px;
         }
 
         .menu a:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
             transform: translateX(4px);
         }
 
         .menu a.active {
-            background: rgba(255, 255, 255, 0.25);
-            border-left-color: #fca311;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-weight: 600;
+        }
+
+        .menu a.active::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 20%;
+            height: 60%;
+            width: 4px;
+            background: #fca311;
+            border-radius: 0 4px 4px 0;
+            box-shadow: 0 0 10px rgba(252, 163, 17, 0.6);
         }
 
         .menu i {
@@ -132,14 +135,24 @@
             width: 100%;
             padding: 0.85rem 1.5rem;
             background: #dc2626;
+            color: white;
             border: none;
             border-radius: 8px;
-            color: white;
             font-weight: 600;
+            font-size: 1rem;
             cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 12px;
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+            white-space: nowrap;
+        }
+
+        .logout-btn:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(220, 38, 38, 0.4);
         }
 
         /* ========================================================= */

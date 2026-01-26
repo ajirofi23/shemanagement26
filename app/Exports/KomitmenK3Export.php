@@ -33,10 +33,13 @@ class KomitmenK3Export implements FromCollection, WithHeadings, WithMapping, Wit
 
     public function collection()
     {
-        $query = KomitmenK3::with('user.section')
-            ->whereHas('user', function ($q) {
+        $query = KomitmenK3::with('user.section');
+
+        if ($this->sectionId) {
+            $query->whereHas('user', function ($q) {
                 $q->where('section_id', $this->sectionId);
             });
+        }
 
         if ($this->bulan) {
             $query->whereMonth('created_at', $this->bulan);
@@ -48,14 +51,16 @@ class KomitmenK3Export implements FromCollection, WithHeadings, WithMapping, Wit
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('komitmen', 'like', "%{$this->search}%");
-                $q->orWhereHas('user', function ($sub) {
-                    $sub->where('section_id', $this->sectionId)
-                        ->where(function ($subsub) {
-                            $subsub->where('nama', 'like', "%{$this->search}%")
+                $q->where('komitmen', 'like', "%{$this->search}%")
+                    ->orWhereHas('user', function ($sub) {
+                        if ($this->sectionId) {
+                            $sub->where('section_id', $this->sectionId);
+                        }
+                        $sub->where(function ($inner) {
+                            $inner->where('nama', 'like', "%{$this->search}%")
                                 ->orWhere('nip', 'like', "%{$this->search}%");
                         });
-                });
+                    });
             });
         }
 

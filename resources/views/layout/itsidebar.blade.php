@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHE Dashboard – PT AICC</title>
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -19,31 +21,31 @@
             font-family: 'Poppins', sans-serif;
             transition: margin-left 0.3s ease;
         }
-        
+
         /* === PERBAIKAN Z-INDEX MUTLAK UNTUK MODAL === */
         .modal-backdrop {
             z-index: 1070 !important;
         }
-        
+
         .modal {
             z-index: 1071 !important;
         }
-        
+
         /* ---------------------------- SIDEBAR STYLES ---------------------------- */
         .sidebar {
             width: 260px;
-            background: linear-gradient(180deg, #64707e 0%, #717d8b 100%);
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
             color: white;
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
             padding: 24px 0;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             z-index: 1051;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Gaya untuk Logo/Brand Container */
@@ -51,15 +53,15 @@
             text-align: center;
             padding: 0 1.25rem 2rem;
             letter-spacing: -1px;
-            color: white; 
-            overflow: hidden; 
+            color: white;
+            overflow: hidden;
         }
 
         /* Gaya untuk Gambar Logo */
         #sidebarLogo {
             max-width: 100%;
             height: auto;
-            max-height: 40px; 
+            max-height: 40px;
             margin: 0 auto;
             display: block;
             transition: all 0.3s ease;
@@ -76,28 +78,41 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 0.9rem 1.5rem;
-            color: rgba(255, 255, 255, 0.92);
+            padding: 0.85rem 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             font-weight: 500;
-            font-size: 1rem;
-            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            border-left: 4px solid transparent;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
             position: relative;
+            margin: 4px 12px;
+            border-radius: 12px;
         }
 
         .menu a:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
             transform: translateX(4px);
         }
 
         .menu a.active {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
-            border-left-color: #fca311;
+            font-weight: 600;
         }
-        
+
+        .menu a.active::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 20%;
+            height: 60%;
+            width: 4px;
+            background: #fca311;
+            border-radius: 0 4px 4px 0;
+            box-shadow: 0 0 10px rgba(252, 163, 17, 0.6);
+        }
+
         .menu a i {
             font-size: 1.25rem;
             min-width: 24px;
@@ -131,7 +146,7 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 14px rgba(220, 38, 38, 0.4);
         }
-        
+
         /* ---------------------------- TOPBAR STYLES ----------------------------- */
         .app-header {
             position: fixed;
@@ -142,7 +157,7 @@
             background: #ffffff;
             border-bottom: 1px solid #e5e7eb;
             z-index: 1020;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             transition: left 0.3s ease;
         }
 
@@ -153,7 +168,7 @@
             align-items: center;
             justify-content: space-between;
         }
-        
+
         .app-title {
             font-weight: 600;
             font-size: 18px;
@@ -168,26 +183,26 @@
             color: #111827;
             margin-right: 15px;
             cursor: pointer;
-            display: none; 
+            display: none;
         }
-        
+
         /* ----------------------- MAIN CONTENT STYLES -------------------------- */
         .main-content {
             margin-left: 260px;
-            padding: 2rem; 
-            padding-top: calc(2rem + 64px); 
+            padding: 2rem;
+            padding-top: calc(2rem + 64px);
             min-height: 100vh;
             position: relative;
-            z-index: 50; 
-            overflow-x: auto; 
+            z-index: 50;
+            overflow-x: auto;
             transition: margin-left 0.3s ease;
         }
-        
+
         /* ----------------------- TOGGLE DESKTOP STYLES ----------------------- */
 
         /* 1. Sidebar menyempit */
         body.toggled .sidebar {
-            width: 65px; 
+            width: 65px;
             padding: 24px 0 0;
         }
 
@@ -195,75 +210,80 @@
         body.toggled .app-header {
             left: 65px;
         }
+
         body.toggled .main-content {
-            margin-left: 65px; 
+            margin-left: 65px;
         }
 
         /* 3. Penyesuaian Brand/Logo saat Toggle */
         body.toggled .brand {
-            padding: 0 0 2rem; 
+            padding: 0 0 2rem;
         }
 
         body.toggled #sidebarLogo {
-            max-height: 30px; 
+            max-height: 30px;
             width: 30px;
             height: 30px;
         }
-        
+
         /* 4. Menyembunyikan teks menu/logout */
         body.toggled .menu a span {
             display: none;
         }
-        
+
         body.toggled .logout {
             padding: 0;
         }
+
         body.toggled .logout-btn span {
             display: none;
         }
+
         body.toggled .logout-btn {
             justify-content: center;
             border-radius: 0;
             padding: 0.85rem 0.5rem;
         }
-        
+
         /* 5. Memastikan icon menu tetap di tengah/rapi saat menyempit */
         body.toggled .menu a {
             justify-content: center;
-            padding: 0.9rem 0; 
+            padding: 0.9rem 0;
             gap: 0;
         }
-        
+
         /* 6. Mengubah icon toggle saat sidebar menyempit */
         body.toggled #sidebarToggleDesktop i {
             transform: rotate(180deg);
         }
 
         /* ---------------------------- MEDIA QUERIES ----------------------------- */
-        @media (max-width: 991.98px) { 
+        @media (max-width: 991.98px) {
+
             /* Sidebar Mobile */
             .sidebar {
                 transform: translateX(-260px);
             }
+
             .sidebar.show {
                 transform: translateX(0);
             }
-            
+
             /* Topbar Mobile */
             .app-header {
                 left: 0;
             }
-            
+
             /* Konten Utama Mobile */
             .main-content {
                 margin-left: 0;
             }
-            
+
             /* Tampilkan Tombol Toggle Mobile */
             .navbar-toggler-mobile {
-                display: block; 
+                display: block;
             }
-            
+
             /* Sembunyikan Tombol Toggle Desktop */
             #sidebarToggleDesktop {
                 display: none !important;
@@ -277,9 +297,10 @@
                 right: 0;
                 bottom: 0;
                 background-color: rgba(0, 0, 0, 0.5);
-                z-index: 1050; 
+                z-index: 1050;
                 display: none;
             }
+
             .sidebar-backdrop.show {
                 display: block;
             }
@@ -289,6 +310,7 @@
                 width: 260px;
                 transform: translateX(-260px);
             }
+
             body.toggled .app-header,
             body.toggled .main-content {
                 left: 0;
@@ -297,14 +319,16 @@
         }
     </style>
 </head>
+
 <body>
-    
+
     <header class="app-header">
         <div class="header-inner">
             <div class="left d-flex align-items-center">
-                
+
                 {{-- Tombol Toggle Desktop (NEW) --}}
-                <button class="btn btn-sm text-dark me-3 d-none d-lg-block" type="button" id="sidebarToggleDesktop" title="Toggle Sidebar">
+                <button class="btn btn-sm text-dark me-3 d-none d-lg-block" type="button" id="sidebarToggleDesktop"
+                    title="Toggle Sidebar">
                     <i class="bi bi-arrow-bar-left fs-5"></i>
                 </button>
 
@@ -322,7 +346,7 @@
                         Halo, {{ Auth::user()->nama ?? 'Pengguna' }}
                     </span>
                 </div>
-                
+
                 <div class="user-menu" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-person-circle user-icon"></i>
                 </div>
@@ -330,9 +354,11 @@
                 {{-- Dropdown Sederhana --}}
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                     <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Pengaturan Akun</a></li>
-                    <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a class="dropdown-item text-danger" href="#" 
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#"
                             onclick="event.preventDefault(); document.getElementById('logout-form-topbar').submit();">
                             <i class="bi bi-box-arrow-right me-2"></i> Logout
                         </a>
@@ -349,61 +375,60 @@
 
 
     <nav class="sidebar" id="sidebar">
-    {{-- LOGO BRAND AREA --}}
-    <div class="brand">
-        <img src="{{ asset('template/logo/logo.png') }}" alt="AICC Logo" id="sidebarLogo" class="img-fluid">
-    </div>
-    
-    <ul class="menu">
-        <li>
-            <a href="{{ url('/it/dashboard') }}"
-               class="{{ request()->is('it/dashboard') ? 'active' : '' }}">
-                <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
-            </a>
-        </li>
+        {{-- LOGO BRAND AREA --}}
+        <div class="brand">
+            <img src="{{ asset('template/logo/logo.png') }}" alt="AICC Logo" id="sidebarLogo" class="img-fluid">
+        </div>
 
-        <li>
-            <a href="{{ url('/it/management-user') }}"
-               class="{{ request()->is('it/management-user*') ? 'active' : '' }}">
-                <i class="bi bi-people"></i> <span>Management User</span>
-            </a>
-        </li>
+        <ul class="menu">
+            <li>
+                <a href="{{ url('/it/dashboard') }}" class="{{ request()->is('it/dashboard') ? 'active' : '' }}">
+                    <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+                </a>
+            </li>
 
-        <li>
-            <a href="{{ url('/it/management-menu') }}"
-            class="{{ request()->is('it/management-menu*') ? 'active' : '' }}">
-                <i class="bi bi-folder"></i> <span>Management Menu</span>
-            </a>
-        </li>
+            <li>
+                <a href="{{ url('/it/management-user') }}"
+                    class="{{ request()->is('it/management-user*') ? 'active' : '' }}">
+                    <i class="bi bi-people"></i> <span>Management User</span>
+                </a>
+            </li>
 
-        <li>
-            <a href="{{ url('/it/management-akses') }}"
-            class="{{ request()->is('it/management-akses*') ? 'active' : '' }}">
-                <i class="bi bi-lock"></i> <span>Management Akses</span>
-            </a>
-        </li>
+            <li>
+                <a href="{{ url('/it/management-menu') }}"
+                    class="{{ request()->is('it/management-menu*') ? 'active' : '' }}">
+                    <i class="bi bi-folder"></i> <span>Management Menu</span>
+                </a>
+            </li>
 
-    </ul>
+            <li>
+                <a href="{{ url('/it/management-akses') }}"
+                    class="{{ request()->is('it/management-akses*') ? 'active' : '' }}">
+                    <i class="bi bi-lock"></i> <span>Management Akses</span>
+                </a>
+            </li>
 
-    <div class="logout">
-        <button type="button" class="logout-btn" 
+        </ul>
+
+        <div class="logout">
+            <button type="button" class="logout-btn"
                 onclick="event.preventDefault(); document.getElementById('logout-form-sidebar').submit();">
-            <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
-        </button>
-    </div>
+                <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
+            </button>
+        </div>
 
-    {{-- Formulir Logout untuk Sidebar --}}
-    <form id="logout-form-sidebar" action="{{ route('logout') }}" method="POST" style="display: none;">
-        @csrf
-    </form>
-</nav>
+        {{-- Formulir Logout untuk Sidebar --}}
+        <form id="logout-form-sidebar" action="{{ route('logout') }}" method="POST" style="display: none;">
+            @csrf
+        </form>
+    </nav>
 
-    
+
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <div class="main-content">
         @yield('content')
-        
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -431,7 +456,7 @@
         // Memuat status toggle dari localStorage saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
             const toggledState = localStorage.getItem('sidebarToggled');
-            
+
             if (toggledState === 'true') {
                 if (window.innerWidth >= 992) {
                     body.classList.add('toggled');
@@ -445,7 +470,7 @@
         if (sidebarToggle) {
             sidebarToggle.addEventListener('click', toggleSidebarMobile);
         }
-        
+
         if (sidebarToggleDesktop) {
             sidebarToggleDesktop.addEventListener('click', toggleSidebarDesktop);
         }
@@ -454,7 +479,7 @@
         if (sidebarBackdrop) {
             sidebarBackdrop.addEventListener('click', () => {
                 if (sidebar.classList.contains('show')) {
-                    toggleSidebarMobile(); 
+                    toggleSidebarMobile();
                 }
             });
         }
@@ -487,6 +512,7 @@
             }
         });
     </script>
-@yield('modals')
+    @yield('modals')
 </body>
+
 </html>
