@@ -79,8 +79,7 @@ class ManagementAksesController extends Controller
                         'can_approve1' => $perm['can_approve1'] ?? 0,
                         'can_approve2' => $perm['can_approve2'] ?? 0,
                         'can_approve3' => $perm['can_approve3'] ?? 0,
-                        'can_approve4' => $perm['can_approve4'] ?? 0,
-                        'updated_at' => now()
+                        'can_approve4' => $perm['can_approve4'] ?? 0
                     ]
                 );
             }

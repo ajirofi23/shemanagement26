@@ -30,6 +30,27 @@
 
 <div class="content p-4" style="background:#f8fafc;min-height:100vh">
 
+    {{-- ALERT MESSAGES --}}
+    @if(session('success'))
+    <div class="alert alert-success border-0 shadow-sm rounded-4 fade show mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+            <div>{{ session('success') }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="alert alert-danger border-0 shadow-sm rounded-4 fade show mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+            <div>{{ session('error') }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
     {{-- HEADER --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
