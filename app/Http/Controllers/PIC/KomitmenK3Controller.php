@@ -36,21 +36,29 @@ class KomitmenK3Controller extends Controller
         $canSync = true;
         $lastSyncDate = null;
 
-        // Mencari data komitmen pertama yang disinkronkan di bulan/tahun yang difilter
-        $latestKomitmen = KomitmenK3::whereHas('user', function ($q) use ($user) {
-            $q->where('section_id', $user->section_id);
-        })
-            ->whereYear('created_at', $tahun)
-            ->whereMonth('created_at', $bulan)
-            ->latest('created_at')
-            ->first();
+        // Validasi: Disable sync jika periode yang dipilih adalah di masa depan
+        $selectedDate = Carbon::create($tahun, $bulan, 1)->startOfMonth();
+        $currentDate = Carbon::now()->startOfMonth();
 
-        if ($latestKomitmen) {
-            // Jika ada komitmen di bulan/tahun ini, anggap sudah disinkronisasi
-            $lastSyncDate = Carbon::parse($latestKomitmen->created_at)->format('d F Y');
-            // Jika bulan dan tahun yang difilter adalah bulan dan tahun sekarang, disable sync
-            if ($bulan == date('n') && $tahun == date('Y')) {
-                $canSync = false;
+        if ($selectedDate->gt($currentDate)) {
+            $canSync = false;
+        } else {
+            // Mencari data komitmen pertama yang disinkronkan di bulan/tahun yang difilter
+            $latestKomitmen = KomitmenK3::whereHas('user', function ($q) use ($user) {
+                $q->where('section_id', $user->section_id);
+            })
+                ->whereYear('created_at', $tahun)
+                ->whereMonth('created_at', $bulan)
+                ->latest('created_at')
+                ->first();
+
+            if ($latestKomitmen) {
+                // Jika ada komitmen di bulan/tahun ini, anggap sudah disinkronisasi
+                $lastSyncDate = Carbon::parse($latestKomitmen->created_at)->format('d F Y');
+                // Jika bulan dan tahun yang difilter adalah bulan dan tahun sekarang atau sudah ada data, disable sync
+                if (($bulan == date('n') && $tahun == date('Y')) || $latestKomitmen) {
+                    $canSync = false;
+                }
             }
         }
         // ------------------------------------
