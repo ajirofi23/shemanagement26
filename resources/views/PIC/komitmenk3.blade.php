@@ -217,7 +217,6 @@
                                     </td>
                                     <td class="pe-4 text-center">
                                         <div class="d-flex justify-content-center gap-1">
-                                            @if($data->user_id === auth()->id())
                                                 <button type="button" class="btn-action text-primary"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#editKomitmenK3Modal"
@@ -227,7 +226,6 @@
                                                     title="Edit Komitmen">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </button>
-                                            @endif
 
                                             @if($data->bukti)
                                                 <button type="button" class="btn-action text-info" 
