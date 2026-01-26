@@ -803,40 +803,6 @@
                 </form>
             </div>
 
-            <!-- Filter Info Display -->
-            @if(request()->hasAny(['start_date', 'end_date', 'section', 'status']))
-                <div class="filter-info fade-up"
-                    style="margin-bottom: 15px; padding: 10px; background: #f0f9ff; border-radius: 6px; border: 1px solid #bae6fd;">
-                    <strong style="color: #0369a1;">
-                        <i class="fas fa-info-circle"></i> Filter Aktif:
-                    </strong>
-                    <span style="font-size: 0.9rem; color: #0c4a6e;">
-                        @php
-                            $filterText = [];
-                            if (request('start_date'))
-                                $filterText[] = 'Dari: ' . date('d M Y', strtotime(request('start_date')));
-                            if (request('end_date'))
-                                $filterText[] = 'Sampai: ' . date('d M Y', strtotime(request('end_date')));
-                            if (request('section')) {
-                                $selectedSection = $sections->firstWhere('id', request('section'));
-                                $filterText[] = 'Section: ' . ($selectedSection->section ?? 'Unknown');
-                            }
-                            if (request('status')) {
-                                $statusLabels = [
-                                    'open' => 'Open',
-                                    'closed' => 'Closed',
-                                    'progress' => 'In Progress'
-                                ];
-                                $filterText[] = 'Status: ' . ($statusLabels[request('status')] ?? request('status'));
-                            }
-                        @endphp
-                        {{ implode(' | ', $filterText) }}
-                        <a href="{{ url('/pic/dashboard') }}" style="margin-left: 10px; color: #dc2626; text-decoration: none;">
-                            <i class="fas fa-times"></i> Hapus Filter
-                        </a>
-                    </span>
-                </div>
-            @endif
 
             <div class="dashboard-grid-container">
 
@@ -1152,7 +1118,7 @@
                 @endif
                 | Terakhir diperbarui: {{ now()->format('H:i:s') }}
             </span> <button onclick="refreshDashboard()" style="margin-left: 10px; padding: 2px 8px; font-size: 0.8rem; background: #3b82f6; color: white;
-                                    border: none; border-radius: 4px; cursor: pointer;">
+                                        border: none; border-radius: 4px; cursor: pointer;">
                 Refresh
             </button>
         </div>
@@ -1308,9 +1274,9 @@
                         }) : 'Semua';
 
                         lastUpdateEl.innerHTML = `
-                                                        Data periode: ${startDateFormatted} - ${endDateFormatted}
-                                                        | Terakhir diperbarui: ${now.toLocaleTimeString('id-ID')}
-                                                    `;
+                                                            Data periode: ${startDateFormatted} - ${endDateFormatted}
+                                                            | Terakhir diperbarui: ${now.toLocaleTimeString('id-ID')}
+                                                        `;
 
                         // Cek loss day
                         checkTodayLossDay();
@@ -1461,26 +1427,26 @@
             const notif = document.createElement('div');
             notif.className = 'loss-day-notification';
             notif.style.cssText = `
-                                position: fixed;
-                                top: 70px;
-                                right: 20px;
-                                background: #dc2626;
-                                color: white;
-                                padding: 14px 18px;
-                                border-radius: 8px;
-                                box-shadow: 0 4px 12px rgba(220,38,38,0.3);
-                                z-index: 1000;
-                                animation: slideIn 0.3s ease-out;
-                            `;
+                                    position: fixed;
+                                    top: 70px;
+                                    right: 20px;
+                                    background: #dc2626;
+                                    color: white;
+                                    padding: 14px 18px;
+                                    border-radius: 8px;
+                                    box-shadow: 0 4px 12px rgba(220,38,38,0.3);
+                                    z-index: 1000;
+                                    animation: slideIn 0.3s ease-out;
+                                `;
             notif.innerHTML = `
-                                <strong>⚠️ PERINGATAN!</strong><br>
-                                Terdapat Work Accident (Loss day) <b>hari ini</b>.<br>
-                                Total Safety Work Day akan direset besok.
-                                <button onclick="this.parentElement.remove()"
-                                    style="position:absolute;top:6px;right:8px;background:none;border:none;color:white;font-size:16px;cursor:pointer;">
-                                    ×
-                                </button>
-                            `;
+                                    <strong>⚠️ PERINGATAN!</strong><br>
+                                    Terdapat Work Accident (Loss day) <b>hari ini</b>.<br>
+                                    Total Safety Work Day akan direset besok.
+                                    <button onclick="this.parentElement.remove()"
+                                        style="position:absolute;top:6px;right:8px;background:none;border:none;color:white;font-size:16px;cursor:pointer;">
+                                        ×
+                                    </button>
+                                `;
             document.body.appendChild(notif);
 
             setTimeout(() => notif.remove(), 10000);
@@ -1490,20 +1456,20 @@
             const notif = document.createElement('div');
             notif.className = 'loss-day-notification';
             notif.style.cssText = `
-                                position: fixed;
-                                top: 70px;
-                                right: 20px;
-                                background: #16a34a;
-                                color: white;
-                                padding: 12px 16px;
-                                border-radius: 8px;
-                                box-shadow: 0 4px 12px rgba(22,163,74,0.3);
-                                z-index: 1000;
-                            `;
+                                    position: fixed;
+                                    top: 70px;
+                                    right: 20px;
+                                    background: #16a34a;
+                                    color: white;
+                                    padding: 12px 16px;
+                                    border-radius: 8px;
+                                    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+                                    z-index: 1000;
+                                `;
             notif.innerHTML = `
-                                <strong>✅ BAGUS!</strong><br>
-                                Hari ini tidak ada Accident.
-                            `;
+                                    <strong>✅ BAGUS!</strong><br>
+                                    Hari ini tidak ada Accident.
+                                `;
             document.body.appendChild(notif);
 
             setTimeout(() => notif.remove(), 5000);
@@ -1513,20 +1479,20 @@
         // Tambahkan style untuk animasi
         const style = document.createElement('style');
         style.textContent = `
-                                        @keyframes slideIn {
-                                            from { transform: translateX(100%); opacity: 0; }
-                                            to { transform: translateX(0); opacity: 1; }
-                                        }
+                                            @keyframes slideIn {
+                                                from { transform: translateX(100%); opacity: 0; }
+                                                to { transform: translateX(0); opacity: 1; }
+                                            }
 
-                                        .filter-input[type="date"]::-webkit-calendar-picker-indicator {
-                                            cursor: pointer;
-                                            opacity: 0.6;
-                                        }
+                                            .filter-input[type="date"]::-webkit-calendar-picker-indicator {
+                                                cursor: pointer;
+                                                opacity: 0.6;
+                                            }
 
-                                        .filter-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-                                            opacity: 1;
-                                        }
-                                    `;
+                                            .filter-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+                                                opacity: 1;
+                                            }
+                                        `;
         document.head.appendChild(style);
     </script>
 
