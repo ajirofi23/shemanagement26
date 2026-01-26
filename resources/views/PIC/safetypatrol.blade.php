@@ -1,353 +1,260 @@
 @extends('layout.picsidebar')
 
 @section('content')
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --secondary: #64748b;
-            --dark: #0f172a;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --glass: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.4);
+            --primary-bold: #4f46e5;
+            --secondary-text: #64748b;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at top right, #f8fafc, #eff6ff);
-            color: #1e293b;
+        .content {
+            background: #f8fafc;
             min-height: 100vh;
+            animation: fadeIn 0.6s ease-out;
         }
 
-        .animate-in {
-            animation: fadeInSlide 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        .modern-card {
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
         }
 
-        @keyframes fadeInSlide {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .bg-blur-dot {
-            position: fixed;
-            width: 400px;
-            height: 400px;
-            background: var(--primary);
-            filter: blur(150px);
-            opacity: 0.05;
-            z-index: -1;
-            top: -100px;
-            right: -100px;
-        }
-
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-        }
-
-        .custom-table-wrapper {
-            border-radius: 20px;
-            background: white;
-            padding: 10px;
-        }
-
-        .table {
-            border-collapse: separate;
-            border-spacing: 0 8px;
-        }
-
-        .table thead th {
-            background: transparent;
-            color: var(--secondary);
-            font-weight: 700;
+        /* Table Improvements */
+        .modern-table thead th {
             text-transform: uppercase;
             font-size: 0.75rem;
-            letter-spacing: 1px;
-            border: none;
-            padding: 15px 20px;
-        }
-
-        .table tbody tr {
-            background: #ffffff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-            transition: all 0.3s ease;
-        }
-
-        .table tbody tr:hover {
-            transform: translateY(-3px) scale(1.002);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-            background: #f8faff !important;
-        }
-
-        .table td {
-            border: none !important;
-            padding: 18px 20px !important;
-        }
-
-        .table td:first-child {
-            border-radius: 15px 0 0 15px;
-        }
-
-        .table td:last-child {
-            border-radius: 0 15px 15px 0;
-        }
-
-        .btn-futuristic {
-            border-radius: 14px;
-            padding: 10px 20px;
+            letter-spacing: 0.05em;
             font-weight: 700;
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        .modern-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            width: 32px;
+            height: 32px;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.4s ease;
-            border: none;
-        }
-
-        .btn-export {
-            background: #000;
-            color: #fff;
-        }
-
-        .btn-export:hover {
-            background: #333;
-            transform: translateY(-2px);
-        }
-
-        .btn-after {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-        }
-
-        /* Filter & Search Styling */
-        .filter-input {
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            padding: 10px 15px;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: 1px solid #e2e8f0;
             background: #fff;
         }
 
-        .filter-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-            outline: none;
+        .btn-action:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+            background: #f8fafc;
         }
 
-        .search-container {
-            position: relative;
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .search-container i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--secondary);
-        }
-
-        .search-container input {
-            padding-left: 45px !important;
-        }
-
-        .status-pill {
-            padding: 6px 14px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-
-        .modal-content {
+        .btn-after {
+            background: #f59e0b;
+            color: white;
             border: none;
-            border-radius: 35px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(15px);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-soft-primary { background: #e0e7ff; color: #4338ca; }
+        .badge-soft-success { background-color: #dcfce7; color: #166534; }
+        .badge-soft-warning { background-color: #fef3c7; color: #92400e; }
+        .badge-soft-danger { background-color: #fee2e2; color: #991b1b; }
+        .badge-soft-info { background-color: #e0f2fe; color: #0369a1; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 
-    <div class="bg-blur-dot"></div>
-
-    <div class="content p-4 animate-in">
-        <div class="row align-items-center mb-5">
-            <div class="col-md-7">
-
-                <h1 class="display-5 fw-extrabold text-dark mb-2">Safety Patrol</h1>
-                <p class="text-secondary fs-5">Pantau, perbaiki, dan tingkatkan standar keselamatan kerja.</p>
+    <div class="content p-4">
+        {{-- Header Halaman --}}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 style="color:#0f172a;" class="fw-bold m-0">
+                    <i class="bi bi-shield-shaded me-2 text-primary"></i>Safety Patrol Reporting
+                </h3>
+                <p class="text-muted small mb-0">Kelola temuan dan perbaikan standar keselamatan kerja di area Anda.</p>
             </div>
-            <div class="col-md-5 text-md-end">
-                <a href="{{ url('/pic/safety-patrol/export') }}" class="btn btn-futuristic btn-export">
-                    <i class="bi bi-box-arrow-up-right"></i> Export Excel
+
+            <div class="d-flex gap-2">
+                <a href="{{ url('/pic/safety-patrol/export') }}" class="btn btn-success btn-sm px-3 shadow-sm">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Excel
                 </a>
             </div>
         </div>
 
-        <div class="card glass-card border-0">
-            <div class="card-body p-4">
-                <form action="{{ url('/pic/safety-patrol') }}" method="GET" class="mb-4">
-                    <div class="d-flex flex-wrap gap-3 align-items-center">
-                        <div class="search-container">
-                            <i class="bi bi-search"></i>
-                            <input type="text" id="searchInput" name="search" value="{{ request('search') }}"
-                                class="form-control filter-input" placeholder="Cari temuan...">
+        {{-- Filter & Search Toolbar --}}
+        <div class="card modern-card mb-4">
+            <div class="card-body p-3">
+                <form action="{{ url('/pic/safety-patrol') }}" method="GET" id="filterForm">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-secondary mb-1">Cari Temuan</label>
+                            <div class="input-group input-group-sm shadow-sm">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-search"></i></span>
+                                <input type="text" id="searchInput" name="search" value="{{ request('search') }}" 
+                                    class="form-control border-start-0 ps-0" placeholder="">
+                            </div>
                         </div>
 
-                        <div style="min-width: 180px;">
-                            <select name="area" class="form-select filter-input" onchange="this.form.submit()">
-                                <option value="">Semua Lokasi/Area</option>
-                                @foreach($areas ?? [] as $a) {{-- Asumsi variabel $areas dikirim dari Controller --}}
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-secondary mb-1">Lokasi / Area</label>
+                            <select name="area" class="form-select form-select-sm shadow-sm" onchange="this.form.submit()">
+                                <option value="">Semua Lokasi</option>
+                                @foreach($areas ?? ['Produksi', 'Gudang', 'Office'] as $a)
                                     <option value="{{ $a }}" {{ request('area') == $a ? 'selected' : '' }}>{{ $a }}</option>
                                 @endforeach
-                                {{-- Jika data area hardcoded: --}}
-                                <option value="Produksi" {{ request('area') == 'Produksi' ? 'selected' : '' }}>Produksi
-                                </option>
-                                <option value="Gudang" {{ request('area') == 'Gudang' ? 'selected' : '' }}>Gudang</option>
-                                <option value="Office" {{ request('area') == 'Office' ? 'selected' : '' }}>Office</option>
                             </select>
                         </div>
 
-                        <div style="min-width: 150px;">
-                            <select name="status" class="form-select filter-input" onchange="this.form.submit()">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-secondary mb-1">Status</label>
+                            <select name="status" class="form-select form-select-sm shadow-sm" onchange="this.form.submit()">
                                 <option value="">Semua Status</option>
                                 <option value="Open" {{ request('status') == 'Open' ? 'selected' : '' }}>Open</option>
-                                <option value="Progress" {{ request('status') == 'Progress' ? 'selected' : '' }}>Progress
-                                </option>
-                                <option value="Rejected" {{ request('status') == 'Rejected' ? 'selected' : '' }}>Rejected
-                                </option>
+                                <option value="Progress" {{ request('status') == 'Progress' ? 'selected' : '' }}>Progress</option>
+                                <option value="Rejected" {{ request('status') == 'Rejected' ? 'selected' : '' }}>Rejected</option>
                                 <option value="Close" {{ request('status') == 'Close' ? 'selected' : '' }}>Close</option>
                             </select>
                         </div>
 
-                        @if(request('search') || request('area') || request('status'))
-                            <a href="{{ url('/pic/safety-patrol') }}" class="btn btn-light rounded-3 text-secondary">
-                                <i class="bi bi-arrow-clockwise"></i> Reset
+                        @if(request()->hasAny(['search', 'area', 'status']))
+                        <div class="col-md-3 d-flex align-items-end">
+                            <a href="{{ url('/pic/safety-patrol') }}" class="btn btn-light btn-sm w-100 border shadow-sm">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Reset Filter
                             </a>
+                        </div>
                         @endif
                     </div>
                 </form>
+            </div>
+        </div>
 
-                <div class="custom-table-wrapper">
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead>
+        {{-- Table Area --}}
+        <div class="card modern-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table modern-table align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="50" class="ps-4 text-center">#</th>
+                                <th>Timestamp</th>
+                                <th>Lokasi / Area</th>
+                                <th>Temuan Masalah</th>
+                                <th class="text-center">Due Date</th>
+                                <th class="text-center">Evidence</th>
+                                <th class="text-center">Status</th>
+                                <th width="150" class="pe-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($safetypatrols as $laporan)
+                                @php 
+                                    $statusBadge = [
+                                        'Open' => 'badge-soft-danger',
+                                        'Progress' => 'badge-soft-warning',
+                                        'Rejected' => 'badge-soft-danger',
+                                        'Close' => 'badge-soft-success'
+                                    ][$laporan->status] ?? 'badge-soft-secondary';
+                                @endphp
                                 <tr>
-                                    <th class="text-center">#</th>
-                                    <th>Timestamp</th>
-                                    <th>Identitas</th>
-                                    <th>Lokasi / Area</th>
-                                    <th>Temuan Masalah</th>
-                                    <th class="text-center">DueDate</th>
-                                    <th class="text-center">Visual</th>
-                                    <th class="text-center">Status</th>
-                                    <th class="text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($safetypatrols as $laporan)
-                                    @php $statusBadge = $statusColors[$laporan->status] ?? 'secondary'; @endphp
-                                    <tr>
-                                        <td class="text-center fw-bold text-muted">{{ $loop->iteration }}</td>
-                                        <td>
-                                            <div class="d-flex flex-column">
-                                                <span
-                                                    class="text-dark fw-bold">{{ \Carbon\Carbon::parse($laporan->tanggal)->format('d/m/y') }}</span>
-                                                <small
-                                                    class="text-muted">{{ \Carbon\Carbon::parse($laporan->tanggal)->format('H:i') }}</small>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex flex-column">
-                                                <span class="badge bg-dark mb-1"
-                                                    style="width: fit-content;">{{ $laporan->eporte }}</span>
-                                                <small
-                                                    class="text-primary fw-bold">{{ $laporan->section->section ?? 'N/A' }}</small>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="p-2 bg-light rounded-3 me-2">
-                                                    <i class="bi bi-geo-alt-fill text-danger"></i>
-                                                </div>
-                                                <span class="fw-bold">{{ $laporan->area }}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="text-truncate" style="max-width: 150px; cursor: help;"
-                                                title="{{ $laporan->problem }}">
-                                                {{ $laporan->problem }}
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span
-                                                class="fw-bold {{ \Carbon\Carbon::parse($laporan->due_date)->isPast() && $laporan->status != 'Close' ? 'text-danger' : 'text-muted' }}">
-                                                {{ $laporan->due_date ? \Carbon\Carbon::parse($laporan->due_date)->format('d M') : '-' }}
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center gap-2">
-                                                <span
-                                                    class="badge {{ $laporan->foto_before ? 'bg-info' : 'bg-light text-muted' }}"
-                                                    title="Before">B</span>
-                                                <span
-                                                    class="badge {{ $laporan->foto_after ? 'bg-success' : 'bg-light text-muted' }}"
-                                                    title="After">A</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span
-                                                class="status-pill bg-{{ $statusBadge }} bg-opacity-10 text-{{ $statusBadge }}">
-                                                ● {{ $laporan->status }}
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center gap-2">
-                                                @if(($laporan->status === 'Open' || $laporan->status === 'Rejected'))
-                                                    <button type="button" class="btn btn-sm btn-after btn-futuristic"
-                                                        data-bs-toggle="modal" data-bs-target="#uploadAfterModal{{ $laporan->id }}">
-                                                        <i class="bi bi-camera-fill"></i> After
-                                                    </button>
-                                                @endif
+                                    <td class="ps-4 text-center text-muted small fw-bold">{{ $loop->iteration }}</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ \Carbon\Carbon::parse($laporan->tanggal)->format('d M Y') }}</div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">{{ \Carbon\Carbon::parse($laporan->tanggal)->format('H:i') }} - #{{ $laporan->eporte }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                                            <span class="fw-bold text-dark">{{ $laporan->area }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="mb-0 text-muted small" style="max-width: 200px;" title="{{ $laporan->problem }}">
+                                            {{ Str::limit($laporan->problem, 50) }}
+                                        </p>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="small fw-bold {{ \Carbon\Carbon::parse($laporan->due_date)->isPast() && $laporan->status != 'Close' ? 'text-danger' : 'text-muted' }}">
+                                            {{ $laporan->due_date ? \Carbon\Carbon::parse($laporan->due_date)->format('d M y') : '-' }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <span class="badge {{ $laporan->foto_before ? 'badge-soft-info' : 'bg-light text-muted' }}" title="Before">B</span>
+                                            <span class="badge {{ $laporan->foto_after ? 'badge-soft-success' : 'bg-light text-muted' }}" title="After">A</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge {{ $statusBadge }} rounded-pill px-3">
+                                            {{ $laporan->status }}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4 text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            @if(($laporan->status === 'Open' || $laporan->status === 'Rejected'))
+                                                <button type="button" class="btn-after shadow-sm"
+                                                    data-bs-toggle="modal" data-bs-target="#uploadAfterModal{{ $laporan->id }}">
+                                                    <i class="bi bi-camera"></i> After
+                                                </button>
+                                            @endif
 
-                                                @if($laporan->foto_before || $laporan->foto_after)
-                                                    <button type="button" class="btn btn-sm btn-outline-dark shadow-sm"
-                                                        style="border-radius: 10px;" data-bs-toggle="modal"
-                                                        data-bs-target="#viewDetailModal{{ $laporan->id }}">
-                                                        <i class="bi bi-eye-fill"></i>
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="9" class="text-center py-5 text-muted">Data tidak ditemukan dengan filter
-                                            tersebut.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                                            @if($laporan->foto_before || $laporan->foto_after)
+                                                <button type="button" class="btn-action text-info"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#viewDetailModal{{ $laporan->id }}"
+                                                    title="Lihat Visual">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <img src="https://illustrations.popsy.co/slate/empty-folder.svg" style="width: 150px;" class="mb-4">
+                                        <h5 class="fw-bold text-secondary">Tidak ada temuan ditemukan</h5>
+                                        <p class="text-muted small">Data temuan safety patrol untuk periode ini belum tersedia.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+
+        @if(method_exists($safetypatrols, 'links'))
+            <div class="d-flex justify-content-between align-items-center mt-4 px-2">
+                <small class="text-muted">Menampilkan {{ $safetypatrols->count() }} data</small>
+                <div>{{ $safetypatrols->links() }}</div>
+            </div> 
+        @endif
     </div>
 
     <script>
@@ -375,7 +282,7 @@
                 setTimeout(type, isDeleting ? 50 : 100);
             }
         }
-        type();
+        if(input) type();
 
         function previewImage(input, previewId) {
             const preview = document.getElementById(previewId);
@@ -384,11 +291,11 @@
                 const reader = new FileReader();
                 reader.onload = e => {
                     preview.innerHTML = `
-                                <div class="col-12 mt-3 animate-in">
-                                    <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
-                                        <img src="${e.target.result}" style="height: 250px; object-fit: cover;">
-                                    </div>
-                                </div>`;
+                        <div class="col-12 mt-3 bounceIn">
+                            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 12px;">
+                                <img src="${e.target.result}" style="height: 200px; object-fit: cover;">
+                            </div>
+                        </div>`;
                 }
                 reader.readAsDataURL(input.files[0]);
             }
@@ -398,45 +305,40 @@
 
 @section('modals')
     @foreach($safetypatrols as $laporan)
-        {{-- Kode Modals Tetap Sama Seperti Versi Sebelumnya --}}
         @if(($laporan->status === 'Open' || $laporan->status === 'Rejected'))
             <div class="modal fade" id="uploadAfterModal{{ $laporan->id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header border-0 p-4">
-                            <div>
-                                <h3 class="fw-extrabold text-dark mb-0">Update Perbaikan</h3>
-                                <p class="text-muted mb-0 small">ID: #{{ $laporan->eporte }}</p>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                        <div class="modal-header bg-warning text-white border-0" style="border-radius: 15px 15px 0 0;">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-camera me-2"></i> Update Perbaikan (After)</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body p-4 pt-0">
-                            <form action="{{ url('/pic/safety-patrol/upload-after/' . $laporan->id) }}" method="POST"
-                                enctype="multipart/form-data">
+                        <div class="modal-body p-4">
+                            <form action="{{ url('/pic/safety-patrol/upload-after/' . $laporan->id) }}" method="POST" enctype="multipart/form-data">
                                 @csrf @method('PUT')
                                 <input type="hidden" name="status" value="Progress">
                                 <div class="row g-4">
                                     <div class="col-md-5">
-                                        <div class="p-4 bg-light rounded-4 border-dashed border-2">
-                                            <h6 class="fw-bold mb-3">Detail Temuan</h6>
-                                            <div class="mb-2"><small class="text-muted d-block">Masalah:</small>
+                                        <div class="p-3 bg-light rounded-3 border">
+                                            <h6 class="fw-bold mb-3 text-dark">Detail Temuan</h6>
+                                            <div class="mb-2 small"><span class="text-muted d-block">Masalah:</span>
                                                 <strong>{{ $laporan->problem }}</strong>
                                             </div>
-                                            <div class="mb-3"><small class="text-muted d-block">Target:</small>
-                                                <strong>{{ $laporan->due_date }}</strong>
+                                            <div class="small"><span class="text-muted d-block">Due Date:</span>
+                                                <strong class="text-danger">{{ $laporan->due_date }}</strong>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-7">
-                                        <label class="form-label fw-bold">Foto Perbaikan <span class="text-danger">*</span></label>
-                                        <input type="file" name="foto_after" class="form-control filter-input" accept="image/*"
+                                        <label class="form-label fw-bold small text-dark">Foto Perbaikan <span class="text-danger">*</span></label>
+                                        <input type="file" name="foto_after" class="form-control form-control-sm" accept="image/*"
                                             onchange="previewImage(this, 'fotoAfterPreview_{{ $laporan->id }}')" required>
                                         <div id="fotoAfterPreview_{{ $laporan->id }}" class="row px-2"></div>
                                     </div>
                                 </div>
-                                <div class="text-end mt-4">
-                                    <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow-lg"
-                                        style="border-radius: 12px;">Kirim Solusi</button>
+                                <div class="modal-footer border-0 px-0 pb-0 mt-4">
+                                    <button type="button" class="btn btn-light btn-sm px-4" data-bs-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold text-white shadow-sm">Kirim Perbaikan</button>
                                 </div>
                             </form>
                         </div>
@@ -448,41 +350,37 @@
         @if($laporan->foto_before || $laporan->foto_after)
             <div class="modal fade" id="viewDetailModal{{ $laporan->id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content overflow-hidden">
-                        <div class="modal-header border-0 p-4">
-                            <h4 class="fw-extrabold">Visual Evidence Comparison</h4>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                        <div class="modal-header bg-dark text-white border-0" style="border-radius: 15px 15px 0 0;">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-images me-2"></i> Perbandingan Visual</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body p-4 pt-0">
+                        <div class="modal-body p-4">
                             <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="text-center mb-2"><span
-                                            class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">BEFORE</span></div>
-                                    <div class="rounded-4 overflow-hidden border" style="height: 300px;">
+                                <div class="col-md-6 border-end">
+                                    <div class="text-center mb-2"><span class="badge badge-soft-danger rounded-pill px-3">BEFORE</span></div>
+                                    <div class="rounded-3 overflow-hidden border shadow-sm" style="height: 250px;">
                                         @if($laporan->foto_before)
-                                            <img src="{{ asset('storage/' . $laporan->foto_before) }}" class="w-100 h-100"
-                                                style="object-fit: cover;">
+                                            <img src="{{ asset('storage/' . $laporan->foto_before) }}" class="w-100 h-100" style="object-fit: cover;">
                                         @else
-                                            <div class="h-100 d-flex align-items-center justify-content-center bg-light text-muted">No
-                                                Image</div>
+                                            <div class="h-100 d-flex align-items-center justify-content-center bg-light text-muted">Tidak Ada Foto</div>
                                         @endif
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="text-center mb-2"><span
-                                            class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">AFTER</span></div>
-                                    <div class="rounded-4 overflow-hidden border shadow-sm" style="height: 300px;">
+                                    <div class="text-center mb-2"><span class="badge badge-soft-success rounded-pill px-3">AFTER</span></div>
+                                    <div class="rounded-3 overflow-hidden border shadow-sm" style="height: 250px;">
                                         @if($laporan->foto_after)
-                                            <img src="{{ asset('storage/' . $laporan->foto_after) }}" class="w-100 h-100"
-                                                style="object-fit: cover;">
+                                            <img src="{{ asset('storage/' . $laporan->foto_after) }}" class="w-100 h-100" style="object-fit: cover;">
                                         @else
-                                            <div
-                                                class="h-100 d-flex align-items-center justify-content-center bg-light text-muted italic">
-                                                Waiting for update...</div>
+                                            <div class="h-100 d-flex align-items-center justify-content-center bg-light text-muted italic small">Menunggu Perbaikan...</div>
                                         @endif
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="modal-footer border-0 bg-light-subtle" style="border-radius: 0 0 15px 15px;">
+                            <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Tutup</button>
                         </div>
                     </div>
                 </div>
