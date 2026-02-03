@@ -20,19 +20,19 @@ class PicDashboardController extends Controller
     {
         $user = auth()->user();
         $sectionId = $user->section_id;
-        
+
         // ❌ PIC TIDAK PERLU DROPDOWN SEMUA SECTION
         $sections = Section::where('id', $sectionId)->get();
-        
+
         // Inject section ke request
         $request->merge([
             'section' => $sectionId
         ]);
-        
+
         $dashboardData = $this->getDashboardDataWithFilters($request);
-        
+
         return view('PIC.dashboard', compact('dashboardData', 'sections'));
-        
+
 
     }
 
@@ -44,7 +44,7 @@ class PicDashboardController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->subDays(30)->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $user = auth()->user();
-        
+
         // 🔒 FORCE section dari session (ANTI RESET)
         $request->merge([
             'section' => auth()->user()->section_id
@@ -466,7 +466,7 @@ class PicDashboardController extends Controller
             'incident_counts' => $this->getIncidentCountsByCategory($startDate, $endDate, $sectionId, $status),
             'last_reset_date' => $this->getLastResetDate($startDate, $endDate, $sectionId, $status),
             'current_streak_days' => $this->getCurrentStreakDays($startDate, $endDate, $sectionId, $status),
-            'recent_incidents' => $this->getRecentIncidents($startDate, $endDate, $sectionId, $status),
+            'incident_details' => $this->getRecentIncidents($startDate, $endDate, $sectionId, $status),
             'today_has_loss_day' => $this->checkTodayHasLossDay($startDate, $endDate, $sectionId, $status),
             'hyari_hatto' => $this->getHyariHattoSummary($startDate, $endDate, $sectionId),
             'komitmen_k3' => $this->getKomitmenK3Summary($sectionId),
@@ -495,20 +495,20 @@ class PicDashboardController extends Controller
     {
         $startDate = $request->input('start_date', Carbon::now()->subDays(30)->format('Y-m-d'));
         $startDate = $request->input('start_date', Carbon::now()->subDays(30)->format('Y-m-d'));
-        $endDate   = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        $status    = $request->input('status');
-    
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $status = $request->input('status');
+
         // 🔒 PAKSA SECTION DARI USER LOGIN
         $sectionId = auth()->user()->section_id;
-    
+
         $query = Insiden::query();
-    
+
         if ($startDate && $endDate) {
             $query->whereBetween('tanggal', [$startDate, $endDate]);
         }
-    
+
         $query->where('section_id', $sectionId);
-    
+
         if ($status) {
             $query->where('status', $status);
         } else {
@@ -696,37 +696,37 @@ class PicDashboardController extends Controller
     }
 
     /**
- * Get Komitmen K3 Summary (Percentage of users who have uploaded)
- */
-private function getKomitmenK3Summary($sectionId)
-{
-    $bulan = date('m');
-    $tahun = date('Y');
+     * Get Komitmen K3 Summary (Percentage of users who have uploaded)
+     */
+    private function getKomitmenK3Summary($sectionId)
+    {
+        $bulan = date('m');
+        $tahun = date('Y');
 
-    $usersQuery = User::where('level', '!=', 'Admin')
-        ->where('is_active', 1)
-        ->where('section_id', $sectionId);
+        $usersQuery = User::where('level', '!=', 'Admin')
+            ->where('is_active', 1)
+            ->where('section_id', $sectionId);
 
-    $totalUsers = $usersQuery->count();
+        $totalUsers = $usersQuery->count();
 
-    $sudahUpload = KomitmenK3::whereYear('created_at', $tahun)
-        ->whereMonth('created_at', $bulan)
-        ->whereHas('user', fn ($q) => $q->where('section_id', $sectionId))
-        ->where('status', 'Sudah Upload')
-        ->distinct('user_id')
-        ->count('user_id');
+        $sudahUpload = KomitmenK3::whereYear('created_at', $tahun)
+            ->whereMonth('created_at', $bulan)
+            ->whereHas('user', fn($q) => $q->where('section_id', $sectionId))
+            ->where('status', 'Sudah Upload')
+            ->distinct('user_id')
+            ->count('user_id');
 
-    $belumUpload = max($totalUsers - $sudahUpload, 0);
+        $belumUpload = max($totalUsers - $sudahUpload, 0);
 
-    return [
-        'total_users' => $totalUsers,
-        'sudah_upload' => $sudahUpload,
-        'belum_upload' => $belumUpload,
-        'percentage' => $totalUsers > 0
-            ? round(($sudahUpload / $totalUsers) * 100, 1)
-            : 0
-    ];
-}
+        return [
+            'total_users' => $totalUsers,
+            'sudah_upload' => $sudahUpload,
+            'belum_upload' => $belumUpload,
+            'percentage' => $totalUsers > 0
+                ? round(($sudahUpload / $totalUsers) * 100, 1)
+                : 0
+        ];
+    }
 
 
 
@@ -842,9 +842,13 @@ private function getKomitmenK3Summary($sectionId)
     /**
      * Get Program Safety Summary (combines all safety-related activities)
      */
-    private function getProgramSafetySummary($startDate = null, $endDate = null)
+    private function getProgramSafetySummary($startDate = null, $endDate = null, $sectionId = null)
     {
         $baseQuery = DB::table('tb_programsafety');
+
+        if ($sectionId) {
+            $baseQuery->where('section_id', $sectionId);
+        }
 
         if ($startDate && $endDate) {
             $baseQuery->whereBetween('created_at', [

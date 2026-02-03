@@ -791,6 +791,17 @@
                             <input type="hidden" id="section" name="section" value="{{ auth()->user()->section_id }}">
                         </div>
 
+                        <div class="filter-group">
+                            <label class="filter-label" for="status">Status</label>
+                            <select id="status" name="status" class="filter-select">
+                                <option value="" {{ request('status') == '' ? 'selected' : '' }}>Semua Status</option>
+                                <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
+                                <option value="progress" {{ request('status') == 'progress' ? 'selected' : '' }}>Progress
+                                </option>
+                                <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
+                            </select>
+                        </div>
+
                         <div class="filter-actions">
                             <button type="submit" class="filter-btn btn-apply">
                                 <i class="fas fa-filter"></i> Terapkan
@@ -875,7 +886,7 @@
 
                 <div class="summary-grid">
                     <!-- Hyari Hatto Summary Card -->
-                    <div class="summary-card hyari-hatto-card fade-up">
+                    <div class="summary-card hyari-hatto-card fade-up" id="hyari-hatto-summary">
                         <div class="summary-card-header">
                             <div class="summary-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
                                 <i class="fas fa-exclamation-triangle"></i>
@@ -920,7 +931,8 @@
                     </div>
 
                     <!-- Komitmen K3 Summary Card -->
-                    <div class="summary-card komitmen-k3-card fade-up" style="transition-delay: 0.1s;">
+                    <div class="summary-card komitmen-k3-card fade-up" style="transition-delay: 0.1s;"
+                        id="komitmen-k3-summary">
                         <div class="summary-card-header">
                             <div class="summary-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
                                 <i class="fas fa-handshake"></i>
@@ -963,7 +975,8 @@
                     </div>
 
                     <!-- Safety Patrol Summary Card -->
-                    <div class="summary-card safety-patrol-card fade-up" style="transition-delay: 0.2s;">
+                    <div class="summary-card safety-patrol-card fade-up" style="transition-delay: 0.2s;"
+                        id="safety-patrol-summary">
                         <div class="summary-card-header">
                             <div class="summary-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
                                 <i class="fas fa-shield-alt"></i>
@@ -1008,7 +1021,8 @@
                     </div>
 
                     <!-- Safety Riding Summary Card -->
-                    <div class="summary-card safety-riding-card fade-up" style="transition-delay: 0.3s;">
+                    <div class="summary-card safety-riding-card fade-up" style="transition-delay: 0.3s;"
+                        id="safety-riding-summary">
                         <div class="summary-card-header">
                             <div class="summary-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
                                 <i class="fas fa-motorcycle"></i>
@@ -1049,7 +1063,8 @@
                     </div>
 
                     <!-- Program Safety Overall Summary Card -->
-                    <div class="summary-card program-safety-card fade-up" style="transition-delay: 0.4s;">
+                    <div class="summary-card program-safety-card fade-up" style="transition-delay: 0.4s;"
+                        id="program-safety-summary">
 
                         <div class="summary-card-header">
                             <div class="summary-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
@@ -1099,6 +1114,54 @@
                 </div>
 
             </div>
+
+            <!-- Recent Incidents Table Section -->
+            <div class="summary-section fade-up" style="margin-top: 24px;">
+                <div class="summary-card-header" style="background: none; border: none; padding-bottom: 8px;">
+                    <div class="summary-icon" style="background: linear-gradient(135deg, #1f2937, #111827);">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="summary-title">
+                        <h5>Recent Incidents</h5>
+                        <span class="summary-subtitle">Laporan insiden terbaru dalam periode ini</span>
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto; margin-top: 10px;">
+                    <table class="incident-table table" style="width: 100%; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f1f5f9;">
+                                <th>Tanggal</th>
+                                <th>Jam</th>
+                                <th>Lokasi</th>
+                                <th>Kategori</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($dashboardData['incident_details'] ?? [] as $incident)
+                                <tr>
+                                    <td>{{ \Carbon\Carbon::parse($incident->tanggal)->format('d M Y') }}</td>
+                                    <td>{{ $incident->jam }}</td>
+                                    <td>{{ $incident->lokasi }}</td>
+                                    <td>{{ $incident->kategori }}</td>
+                                    <td>
+                                        <span
+                                            class="badge {{ $incident->status == 'open' ? 'bg-danger-subtle text-danger' : ($incident->status == 'progress' ? 'bg-warning-subtle text-warning' : 'bg-success-subtle text-success') }}">
+                                            {{ strtoupper($incident->status) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">Tidak ada data insiden untuk periode ini
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
 
@@ -1118,7 +1181,7 @@
                 @endif
                 | Terakhir diperbarui: {{ now()->format('H:i:s') }}
             </span> <button onclick="refreshDashboard()" style="margin-left: 10px; padding: 2px 8px; font-size: 0.8rem; background: #3b82f6; color: white;
-                                        border: none; border-radius: 4px; cursor: pointer;">
+                                                border: none; border-radius: 4px; cursor: pointer;">
                 Refresh
             </button>
         </div>
@@ -1274,12 +1337,12 @@
                         }) : 'Semua';
 
                         lastUpdateEl.innerHTML = `
-                                                            Data periode: ${startDateFormatted} - ${endDateFormatted}
-                                                            | Terakhir diperbarui: ${now.toLocaleTimeString('id-ID')}
-                                                        `;
+                                                                    Data periode: ${startDateFormatted} - ${endDateFormatted}
+                                                                    | Terakhir diperbarui: ${now.toLocaleTimeString('id-ID')}
+                                                                `;
 
-                        // Cek loss day
-                        checkTodayLossDay();
+                        // Cek loss day menggunakan data dari API jika tersedia
+                        checkTodayLossDay(data.data.today_has_loss_day);
                     } else {
                         throw new Error(data.message || 'Unknown error');
                     }
@@ -1361,14 +1424,13 @@
                 Object.keys(data.incident_counts).forEach(category => {
                     const cardId = categoryMapping[category];
                     if (!cardId) {
-                        console.warn('No mapping found for category:', category);
                         return;
                     }
 
                     const card = document.getElementById(cardId);
                     if (card) {
                         const count = data.incident_counts[category];
-                        const countEl = card.querySelector('.incident-count');
+                        const countEl = card.querySelector('.incident-count') || card.querySelector('.card-body span');
 
                         if (countEl) {
                             countEl.textContent = count;
@@ -1382,20 +1444,135 @@
                             card.classList.add('no-incident');
                             card.classList.remove('has-incident');
                         }
-                    } else {
-                        console.warn('Card not found for ID:', cardId);
                     }
                 });
+            }
+
+            // Update Summaries (Hyari Hatto, etc.)
+            updateSummarySection('hyari-hatto-summary', data.hyari_hatto);
+            updateSummarySection('safety-patrol-summary', data.safety_patrol);
+            updateSummarySection('safety-riding-summary', data.safety_riding);
+            updateKomitmenK3Summary(data.komitmen_k3);
+            updateProgramSafetySummary(data.program_safety);
+
+            // Update Recent Incidents Table
+            updateIncidentTable(data.incident_details);
+        }
+
+        function updateSummarySection(containerId, summaryData) {
+            const container = document.getElementById(containerId);
+            if (!container || !summaryData) return;
+
+            // Total
+            const totalEl = container.querySelector('.stat-total');
+            if (totalEl) totalEl.textContent = summaryData.total || 0;
+
+            // Open
+            const openEl = container.querySelector('.stat-open');
+            if (openEl) openEl.textContent = summaryData.open || 0;
+
+            // Closed/Progress
+            const closedEl = container.querySelector('.stat-closed');
+            if (closedEl) closedEl.textContent = summaryData.closed || 0;
+
+            const progressEl = container.querySelector('.stat-progress');
+            if (progressEl) progressEl.textContent = summaryData.progress || 0;
+
+            // Percentage
+            const progressFill = container.querySelector('.progress-bar-fill');
+            const progressText = container.querySelector('.progress-text');
+            const percentage = summaryData.percentage_closed || 0;
+
+            if (progressFill) progressFill.style.width = percentage + '%';
+            if (progressText) progressText.textContent = percentage + '% Completed';
+        }
+
+        function updateKomitmenK3Summary(data) {
+            const container = document.getElementById('komitmen-k3-summary');
+            if (!container || !data) return;
+
+            const sudahEl = container.querySelector('.stat-closed');
+            if (sudahEl) sudahEl.textContent = data.sudah_upload || 0;
+
+            const belumEl = container.querySelector('.stat-open');
+            if (belumEl) belumEl.textContent = data.belum_upload || 0;
+
+            const totalEl = container.querySelector('.stat-total');
+            if (totalEl) totalEl.textContent = data.total_users || 0;
+
+            const circle = container.querySelector('.percentage-circle');
+            const valueEl = container.querySelector('.percentage-value');
+            if (circle) circle.style.setProperty('--percentage', data.percentage || 0);
+            if (valueEl) valueEl.textContent = (data.percentage || 0) + '%';
+        }
+
+        function updateProgramSafetySummary(data) {
+            const container = document.getElementById('program-safety-summary');
+            if (!container || !data) return;
+
+            const bigNumber = container.querySelector('.big-number');
+            if (bigNumber) bigNumber.textContent = data.total_completed || 0;
+
+            const totalActEl = container.querySelector('.mini-stat:first-child span');
+            if (totalActEl) totalActEl.textContent = data.total_activities || 0;
+
+            const pendingEl = container.querySelector('.mini-stat:last-child span');
+            if (pendingEl) pendingEl.textContent = data.total_pending || 0;
+
+            const ringValue = container.querySelector('.completion-ring span');
+            if (ringValue) ringValue.textContent = (data.completion_rate || 0) + '%';
+
+            const ring = container.querySelector('.completion-ring');
+            if (ring) ring.style.setProperty('--progress', data.completion_rate || 0);
+        }
+
+        function updateIncidentTable(incidents) {
+            const tbody = document.querySelector('.incident-table tbody');
+            if (!tbody) return;
+
+            if (!incidents || incidents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Tidak ada data insiden untuk periode ini</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            incidents.forEach(incident => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                            <td>${incident.tanggal}</td>
+                            <td>${incident.jam}</td>
+                            <td>${incident.lokasi}</td>
+                            <td>${incident.kategori}</td>
+                            <td><span class="badge ${getStatusBadgeClass(incident.status)}">${incident.status.toUpperCase()}</span></td>
+                        `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getStatusBadgeClass(status) {
+            switch (status.toLowerCase()) {
+                case 'open': return 'bg-danger-subtle text-danger';
+                case 'progress': return 'bg-warning-subtle text-warning';
+                case 'closed': return 'bg-success-subtle text-success text-white';
+                default: return 'bg-secondary-subtle text-secondary';
             }
         }
 
 
-        function checkTodayLossDay() {
+        function checkTodayLossDay(hasLossDayApi) {
 
-            // Ambil elemen tanggal reset
+            // Prioritaskan data dari API jika ada
+            if (typeof hasLossDayApi !== 'undefined') {
+                if (hasLossDayApi) {
+                    showRedAlert();
+                } else {
+                    showGreenAlert();
+                }
+                return;
+            }
+
+            // Fallback ke pengecekan teks (logic lama)
             const resetInfo = document.getElementById('last-reset-date');
-
-            // Format tanggal hari ini (Indonesia)
             const today = new Date();
             const todayString = today.toLocaleDateString('en-GB', {
                 day: '2-digit',
@@ -1403,23 +1580,16 @@
                 year: 'numeric'
             });
 
-            // Hapus notifikasi lama
             const oldNotif = document.querySelector('.loss-day-notification');
             if (oldNotif) oldNotif.remove();
 
-            // Jika ADA reset info
             if (resetInfo) {
-
                 const resetText = resetInfo.innerText.replace('Terakhir:', '').trim();
-
-                // 🔴 JIKA RESET = HARI INI
                 if (resetText === todayString) {
                     showRedAlert();
                     return;
                 }
             }
-
-            // 🟢 JIKA BUKAN HARI INI
             showGreenAlert();
         }
 
@@ -1427,26 +1597,26 @@
             const notif = document.createElement('div');
             notif.className = 'loss-day-notification';
             notif.style.cssText = `
-                                    position: fixed;
-                                    top: 70px;
-                                    right: 20px;
-                                    background: #dc2626;
-                                    color: white;
-                                    padding: 14px 18px;
-                                    border-radius: 8px;
-                                    box-shadow: 0 4px 12px rgba(220,38,38,0.3);
-                                    z-index: 1000;
-                                    animation: slideIn 0.3s ease-out;
-                                `;
+                                            position: fixed;
+                                            top: 70px;
+                                            right: 20px;
+                                            background: #dc2626;
+                                            color: white;
+                                            padding: 14px 18px;
+                                            border-radius: 8px;
+                                            box-shadow: 0 4px 12px rgba(220,38,38,0.3);
+                                            z-index: 1000;
+                                            animation: slideIn 0.3s ease-out;
+                                        `;
             notif.innerHTML = `
-                                    <strong>⚠️ PERINGATAN!</strong><br>
-                                    Terdapat Work Accident (Loss day) <b>hari ini</b>.<br>
-                                    Total Safety Work Day akan direset besok.
-                                    <button onclick="this.parentElement.remove()"
-                                        style="position:absolute;top:6px;right:8px;background:none;border:none;color:white;font-size:16px;cursor:pointer;">
-                                        ×
-                                    </button>
-                                `;
+                                            <strong>⚠️ PERINGATAN!</strong><br>
+                                            Terdapat Work Accident (Loss day) <b>hari ini</b>.<br>
+                                            Total Safety Work Day akan direset besok.
+                                            <button onclick="this.parentElement.remove()"
+                                                style="position:absolute;top:6px;right:8px;background:none;border:none;color:white;font-size:16px;cursor:pointer;">
+                                                ×
+                                            </button>
+                                        `;
             document.body.appendChild(notif);
 
             setTimeout(() => notif.remove(), 10000);
@@ -1456,20 +1626,20 @@
             const notif = document.createElement('div');
             notif.className = 'loss-day-notification';
             notif.style.cssText = `
-                                    position: fixed;
-                                    top: 70px;
-                                    right: 20px;
-                                    background: #16a34a;
-                                    color: white;
-                                    padding: 12px 16px;
-                                    border-radius: 8px;
-                                    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
-                                    z-index: 1000;
-                                `;
+                                            position: fixed;
+                                            top: 70px;
+                                            right: 20px;
+                                            background: #16a34a;
+                                            color: white;
+                                            padding: 12px 16px;
+                                            border-radius: 8px;
+                                            box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+                                            z-index: 1000;
+                                        `;
             notif.innerHTML = `
-                                    <strong>✅ BAGUS!</strong><br>
-                                    Hari ini tidak ada Accident.
-                                `;
+                                            <strong>✅ BAGUS!</strong><br>
+                                            Hari ini tidak ada Accident.
+                                        `;
             document.body.appendChild(notif);
 
             setTimeout(() => notif.remove(), 5000);
@@ -1479,20 +1649,20 @@
         // Tambahkan style untuk animasi
         const style = document.createElement('style');
         style.textContent = `
-                                            @keyframes slideIn {
-                                                from { transform: translateX(100%); opacity: 0; }
-                                                to { transform: translateX(0); opacity: 1; }
-                                            }
+                                                    @keyframes slideIn {
+                                                        from { transform: translateX(100%); opacity: 0; }
+                                                        to { transform: translateX(0); opacity: 1; }
+                                                    }
 
-                                            .filter-input[type="date"]::-webkit-calendar-picker-indicator {
-                                                cursor: pointer;
-                                                opacity: 0.6;
-                                            }
+                                                    .filter-input[type="date"]::-webkit-calendar-picker-indicator {
+                                                        cursor: pointer;
+                                                        opacity: 0.6;
+                                                    }
 
-                                            .filter-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-                                                opacity: 1;
-                                            }
-                                        `;
+                                                    .filter-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+                                                        opacity: 1;
+                                                    }
+                                                `;
         document.head.appendChild(style);
     </script>
 

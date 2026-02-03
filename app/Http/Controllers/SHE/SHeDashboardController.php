@@ -21,7 +21,7 @@ class SheDashboardController extends Controller
     public function index(Request $request)
     {
         // Ambil semua section untuk dropdown filter
-        $sections = Section::orderBy('section')->get();
+        $sections = Section::orderBy('section', 'asc')->get();
 
         // Data dashboard dengan filter
         $dashboardData = $this->getDashboardDataWithFilters($request);
@@ -29,7 +29,14 @@ class SheDashboardController extends Controller
         // Data Matrix untuk laporan tahunan/bulanan
         $matrixData = $this->getSafetyMatrixData($request);
 
-        return view('SHE.dashboard', compact('dashboardData', 'sections', 'matrixData'));
+        // Daftar tahun untuk dropdown matrix (5 tahun ke belakang s/d tahun depan)
+        $currentYear = Carbon::now()->year;
+        $years = [];
+        for ($y = $currentYear + 1; $y >= $currentYear - 10; $y--) {
+            $years[] = $y;
+        }
+
+        return view('SHE.dashboard', compact('dashboardData', 'sections', 'matrixData', 'years'));
     }
 
     /**
@@ -240,8 +247,8 @@ class SheDashboardController extends Controller
      */
     private function getCurrentStreakDays($startDate = null, $endDate = null, $sectionId = null, $status = null)
     {
-        $query = Insiden::where('kategori', 'Work Accident')
-            ->where('work_accident_type', 'Loss Day');
+        $query = Insiden::where('kategori', '=', 'Work Accident')
+            ->where('work_accident_type', '=', 'Loss Day');
 
         // Terapkan filter tanggal jika ada
         if ($startDate && $endDate) {
@@ -411,18 +418,18 @@ class SheDashboardController extends Controller
     {
         $today = Carbon::now()->format('Y-m-d');
 
-        $query = Insiden::whereDate('tanggal', $today)
-            ->where('kategori', 'Work Accident')
-            ->where('work_accident_type', 'Loss Day');
+        $query = Insiden::whereDate('tanggal', '=', $today)
+            ->where('kategori', '=', 'Work Accident')
+            ->where('work_accident_type', '=', 'Loss Day');
 
         // Filter section
         if ($sectionId) {
-            $query->where('section_id', $sectionId);
+            $query->where('section_id', '=', $sectionId);
         }
 
         // Filter status
         if ($status) {
-            $query->where('status', $status);
+            $query->where('status', '=', $status);
         } else {
             $query->whereIn('status', ['progress', 'closed']);
         }
@@ -687,22 +694,29 @@ class SheDashboardController extends Controller
     /**
      * Get Komitmen K3 Summary (Percentage of users who have uploaded)
      */
-    private function getKomitmenK3Summary($bulan = null, $tahun = null)
+    private function getKomitmenK3Summary($sectionId = null)
     {
-        $bulan = $bulan ?? date('m');
-        $tahun = $tahun ?? date('Y');
+        $bulan = date('m');
+        $tahun = date('Y');
 
-        // 🎯 TARGET = semua user di tb_komitment_k3 bulan tsb
-        $totalUsers = KomitmenK3::whereYear('created_at', $tahun)
-            ->whereMonth('created_at', $bulan)
-            ->distinct('user_id')
-            ->count('user_id');
+        $usersQuery = User::where('level', '!=', 'Admin')
+            ->where('is_active', 1);
 
-        // ✅ AKTUAL
-        $sudahUpload = KomitmenK3::whereYear('created_at', $tahun)
-            ->whereMonth('created_at', $bulan)
-            ->where('status', 'Sudah Upload')
-            ->distinct('user_id')
+        if ($sectionId) {
+            $usersQuery->where('section_id', $sectionId);
+        }
+
+        $totalUsers = $usersQuery->count();
+
+        $sudahUploadQuery = KomitmenK3::whereYear('created_at', '=', $tahun)
+            ->whereMonth('created_at', '=', $bulan)
+            ->where('status', '=', 'Sudah Upload');
+
+        if ($sectionId) {
+            $sudahUploadQuery->whereHas('user', fn($q) => $q->where('section_id', $sectionId));
+        }
+
+        $sudahUpload = $sudahUploadQuery->distinct('user_id')
             ->count('user_id');
 
         $belumUpload = max($totalUsers - $sudahUpload, 0);
@@ -830,9 +844,13 @@ class SheDashboardController extends Controller
     /**
      * Get Program Safety Summary (combines all safety-related activities)
      */
-    private function getProgramSafetySummary($startDate = null, $endDate = null)
+    private function getProgramSafetySummary($startDate = null, $endDate = null, $sectionId = null)
     {
         $baseQuery = DB::table('tb_programsafety');
+
+        if ($sectionId) {
+            $baseQuery->where('section_id', '=', $sectionId);
+        }
 
         if ($startDate && $endDate) {
             $baseQuery->whereBetween('created_at', [
@@ -874,15 +892,60 @@ class SheDashboardController extends Controller
         $targetYear = $currentDate->year;
         $targetMonth = $currentDate->month;
 
-        // Define Fiscal Year (April to March)
-        if ($targetMonth < 4) {
-            $fiscalYearStart = $targetYear - 1;
+        // Mendapatkan fiscal year start dari request atau hitung otomatis
+        if ($request->has('fiscal_year')) {
+            $fiscalYearStart = (int) $request->input('fiscal_year');
         } else {
-            $fiscalYearStart = $targetYear;
+            // Define Fiscal Year (April to March) otomatis
+            if ($targetMonth < 4) {
+                $fiscalYearStart = $targetYear - 1;
+            } else {
+                $fiscalYearStart = $targetYear;
+            }
         }
 
         $fiscalYearEnd = $fiscalYearStart + 1;
         $currentFiscalYearLabel = $fiscalYearStart . " - " . $fiscalYearEnd;
+
+        // Daftar bulan dalam tahun fiskal (April ke Maret)
+        $fiscalMonths = [];
+        for ($i = 0; $i < 12; $i++) {
+            $m = ($i + 4);
+            $y = $fiscalYearStart;
+            if ($m > 12) {
+                $m -= 12;
+                $y += 1;
+            }
+            $fiscalMonths[] = [
+                'index' => $i, // 0 = Apr, 1 = May, ..., 11 = Mar
+                'month_num' => $m,
+                'year' => $y,
+                'label' => Carbon::create($y, $m, 1)->format('M-y')
+            ];
+        }
+
+        // Tentukan bulan matrix yang aktif (0-11)
+        // Default: bulan berjalan jika masuk dalam fiscal year yang dipilih, jika tidak default ke 0 (APR)
+        $isCurrentFiscal = (int) $fiscalYearStart === (int) ($targetMonth < 4 ? $targetYear - 1 : $targetYear);
+
+        if ($request->has('matrix_month')) {
+            $activeIndex = (int) $request->input('matrix_month');
+        } elseif ($isCurrentFiscal) {
+            // Cari index bulan berjalan dalam array fiscalMonths
+            $activeIndex = 0;
+            foreach ($fiscalMonths as $fm) {
+                if ($fm['month_num'] == $targetMonth) {
+                    $activeIndex = $fm['index'];
+                    break;
+                }
+            }
+        } else {
+            $activeIndex = 0; // Default ke April jika bukan fiscal year sekarang
+        }
+
+        $activeMonthData = $fiscalMonths[$activeIndex] ?? $fiscalMonths[0]; // Avoid out of bounds
+        $dayBasisDate = Carbon::create($activeMonthData['year'], $activeMonthData['month_num'], 1);
+        $daysInMonth = $dayBasisDate->daysInMonth;
 
         // Categories
         $categories = [
@@ -907,53 +970,44 @@ class SheDashboardController extends Controller
                 'total_month' => 0
             ];
 
-            // 1. Historical Years (Last 3 Fiscal Years before current)
+            // 1. Historical Years
             for ($i = 3; $i >= 1; $i--) {
                 $hStart = $fiscalYearStart - $i;
                 $hEnd = $hStart + 1;
                 $hLabel = $hStart . "-" . $hEnd;
-
                 $matrix[$cat]['historical'][$hLabel] = $this->countIncidentsByCategory($cat, $hStart . "-04-01", $hEnd . "-03-31");
             }
 
             // 2. Current Fiscal Year Months (Apr to Mar)
-            for ($m = 0; $m < 12; $m++) {
-                $monthNum = ($m + 4);
-                $yearNum = $fiscalYearStart;
-                if ($monthNum > 12) {
-                    $monthNum -= 12;
-                    $yearNum += 1;
-                }
-
-                $count = $this->countIncidentsByCategory($cat, Carbon::create($yearNum, $monthNum, 1)->startOfMonth()->format('Y-m-d'), Carbon::create($yearNum, $monthNum, 1)->endOfMonth()->format('Y-m-d'));
-                $matrix[$cat]['months'][$m] = $count;
+            foreach ($fiscalMonths as $fm) {
+                $count = $this->countIncidentsByCategory($cat, Carbon::create($fm['year'], $fm['month_num'], 1)->startOfMonth()->format('Y-m-d'), Carbon::create($fm['year'], $fm['month_num'], 1)->endOfMonth()->format('Y-m-d'));
+                $matrix[$cat]['months'][$fm['index']] = $count;
                 $matrix[$cat]['total_fiscal'] += $count;
             }
 
-            // 3. Current Month Days (1 to 31)
-            $startOfMonth = $currentDate->copy()->startOfMonth();
-            $endOfMonth = $currentDate->copy()->endOfMonth();
-            $daysInMonth = $currentDate->daysInMonth;
-
+            // 3. Days in selected Month
             for ($d = 1; $d <= 31; $d++) {
                 if ($d <= $daysInMonth) {
-                    $dayStr = $currentDate->format('Y-m-') . str_pad($d, 2, '0', STR_PAD_LEFT);
+                    $dayStr = $dayBasisDate->format('Y-m-') . str_pad($d, 2, '0', STR_PAD_LEFT);
                     $count = $this->countIncidentsByCategory($cat, $dayStr, $dayStr);
                     $matrix[$cat]['days'][$d - 1] = $count;
                     $matrix[$cat]['total_month'] += $count;
                 } else {
-                    $matrix[$cat]['days'][$d - 1] = null; // Gray out non-existent days
+                    $matrix[$cat]['days'][$d - 1] = null;
                 }
             }
         }
 
         return [
             'matrix' => $matrix,
+            'fiscal_months' => $fiscalMonths,
             'header' => [
                 'historical_labels' => array_keys($matrix[array_key_first($matrix)]['historical']),
                 'fiscal_label' => $currentFiscalYearLabel,
-                'month_label' => $currentDate->format('M-y'),
-                'days_in_month' => $currentDate->daysInMonth
+                'fiscal_year_start' => $fiscalYearStart,
+                'matrix_month_index' => $activeIndex,
+                'month_label' => $dayBasisDate->format('M-y'),
+                'days_in_month' => $daysInMonth
             ]
         ];
     }

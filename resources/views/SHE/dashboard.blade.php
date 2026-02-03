@@ -757,863 +757,1025 @@
                 font-size: 2rem;
             }
         }
-    </style>
-
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <main class="content">
-        <div class="content-inner">
-
-            <div class="page-title fade-up">DASHBOARD MONITORING</div>
-            <div class="page-subtitle fade-up">Summary of safety performance AICC</div>
-
-            <!-- Filter Section Compact -->
-            <div class="filter-section fade-up">
-                <form id="filterForm" method="GET" action="{{ url('/she/dashboard') }}">
-                    <div class="filter-form-row">
-                        <div class="filter-group">
-                            <label class="filter-label" for="start_date">Mulai</label>
-                            <input type="date" id="start_date" name="start_date" class="filter-input"
-                                value="{{ request('start_date', date('Y-m-d', strtotime('-30 days'))) }}">
-                        </div>
-
-                        <div class="filter-group">
-                            <label class="filter-label" for="end_date">Sampai</label>
-                            <input type="date" id="end_date" name="end_date" class="filter-input"
-                                value="{{ request('end_date', date('Y-m-d')) }}">
-                        </div>
-
-                        <div class="filter-group">
-                            <label class="filter-label" for="section">Section</label>
-                            <select id="section" name="section" class="filter-select">
-                                <option value="">Semua Section</option>
-                                @foreach($sections as $section)
-                                    <option value="{{ $section->id }}" {{ request('section') == $section->id ? 'selected' : '' }}>
-                                        {{ $section->section }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="filter-actions">
-                            <button type="submit" class="filter-btn btn-apply">
-                                <i class="fas fa-filter"></i> Terapkan
-                            </button>
-                            <button type="button" class="filter-btn btn-reset" onclick="resetFilters()">
-                                <i class="fas fa-undo"></i>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Filter Info Display -->
-            @if(request()->hasAny(['start_date', 'end_date', 'section', 'status']))
-                <div class="filter-info fade-up"
-                    style="margin-bottom: 15px; padding: 10px; background: #f0f9ff; border-radius: 6px; border: 1px solid #bae6fd;">
-                    <strong style="color: #0369a1;">
-                        <i class="fas fa-info-circle"></i> Filter Aktif:
-                    </strong>
-                    <span style="font-size: 0.9rem; color: #0c4a6e;">
-                        @php
-                            $filterText = [];
-                            if (request('start_date'))
-                                $filterText[] = 'Dari: ' . date('d M Y', strtotime(request('start_date')));
-                            if (request('end_date'))
-                                $filterText[] = 'Sampai: ' . date('d M Y', strtotime(request('end_date')));
-                            if (request('section')) {
-                                $selectedSection = $sections->firstWhere('id', request('section'));
-                                $filterText[] = 'Section: ' . ($selectedSection->section ?? 'Unknown');
-                            }
-                            if (request('status')) {
-                                $statusLabels = [
-                                    'open' => 'Open',
-                                    'closed' => 'Closed',
-                                    'progress' => 'In Progress'
-                                ];
-                                $filterText[] = 'Status: ' . ($statusLabels[request('status')] ?? request('status'));
-                            }
-                        @endphp
-                        {{ implode(' | ', $filterText) }}
-                        <a href="{{ url('/she/dashboard') }}" style="margin-left: 10px; color: #dc2626; text-decoration: none;">
-                            <i class="fas fa-times"></i> Hapus Filter
-                        </a>
-                    </span>
-                </div>
-            @endif
-
-            <div class="dashboard-grid-container">
-
-                <section class="grid card-total-section">
-                    <div class="card card-total fade-up {{ $dashboardData['total_safety_days'] == 0 ? 'today-warning' : '' }}"
-                        id="total-safety-card">
-                        <div class="card-header">
-                            Total Safety Work Day
-                            @if($dashboardData['last_reset_date'])
-                                <span class="reset-badge">RESET</span>
-                                <small class="reset-info" id="last-reset-date">
-                                    Terakhir: {{ $dashboardData['last_reset_date'] }}
-                                </small>
-                            @endif
-                        </div>
-                        <div class="card-body">
-                            <span id="total-safety-days">{{ $dashboardData['total_safety_days'] }}</span>
-                            @if($dashboardData['total_safety_days'] == 0)
-                                <span class="card-label">Hari ini ada loss day</span>
-                            @else
-                                <span class="card-label">Streak: {{ $dashboardData['current_streak_days'] }} hari</span>
-                            @endif
-                        </div>
-                    </div>
-                </section>
-
-                <section class="grid grid-tiles">
-                    @php
-                        $categories = [
-                            'Work Accident (Loss day)' => ['id' => 'work-accident-loss-day', 'name' => 'Work Accident (Loss day)'],
-                            'Work Accident (Light)' => ['id' => 'work-accident-light', 'name' => 'Work Accident (Light)'],
-                            'Traffic Accident' => ['id' => 'traffic-accident', 'name' => 'Traffic Accident'],
-                            'Fire Accident' => ['id' => 'fire-accident', 'name' => 'Fire Accident'],
-                            'Forklift Accident' => ['id' => 'forklift-accident', 'name' => 'Forklift Accident'],
-                            'Molten Spill Incident' => ['id' => 'molten-spill-incident', 'name' => 'Molten Spill Incident'],
-                            'Property Damage Incident' => ['id' => 'property-damage-incident', 'name' => 'Property Damage Incident']
-                        ];
-
-                        $delay = 0.1;
-                    @endphp
-
-                    @foreach($categories as $key => $categoryInfo)
-                        @php
-                            $count = $dashboardData['incident_counts'][$key] ?? 0;
-                            $cardClass = $count > 0 ? 'has-incident' : 'no-incident';
-                            $cardId = 'card-' . $categoryInfo['id'];
-                        @endphp
-
-                        <div class="card fade-up {{ $cardClass }}" style="transition-delay: {{ $delay }}s;" id="{{ $cardId }}">
-                            <div class="card-header">{{ $categoryInfo['name'] }}</div>
-                            <div class="card-body">
-                                <span class="incident-count" data-category="{{ $key }}">
-                                    {{ $count }}
-                                </span>
-                            </div>
-                        </div>
-                        @php $delay += 0.1; @endphp
-                    @endforeach
-                </section>
-
-            </div>
-
-            <!-- Summary Cards Section -->
-            <div class="summary-section fade-up" style="margin-top: 24px;">
-                {{-- <h4
-                    style="font-size: 1.1rem; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-chart-pie" style="color: #6366f1;"></i>
-                    Program Safety Summary
-                </h4> --}}
-
-                <div class="summary-grid">
-                    <!-- Hyari Hatto Summary Card -->
-                    <div class="summary-card hyari-hatto-card fade-up">
-                        <div class="summary-card-header">
-                            <div class="summary-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <div class="summary-title">
-                                <h5>Hyari Hatto</h5>
-                                <span class="summary-subtitle">Near Miss Reports</span>
-                            </div>
-                        </div>
-                        <div class="summary-card-body">
-                            <div class="summary-stats-row">
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-open">{{ $dashboardData['hyari_hatto']['open'] ?? 0 }}</span>
-                                    <span class="stat-label">Open</span>
-                                </div>
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-closed">{{ $dashboardData['hyari_hatto']['closed'] ?? 0 }}</span>
-                                    <span class="stat-label">Closed</span>
-                                </div>
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-total">{{ $dashboardData['hyari_hatto']['total'] ?? 0 }}</span>
-                                    <span class="stat-label">Total</span>
-                                </div>
-                            </div>
-                            <div class="progress-bar-container">
-                                <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill"
-                                        style="width: {{ $dashboardData['hyari_hatto']['percentage_closed'] ?? 0 }}%; background: linear-gradient(90deg, #10b981, #059669);">
-                                    </div>
-                                </div>
-                                <span class="progress-text">{{ $dashboardData['hyari_hatto']['percentage_closed'] ?? 0 }}%
-                                    Closed</span>
-                            </div>
-                        </div>
-                        <a href="{{ url('/she/hyari-hatto') }}" class="summary-card-link">
-                            <span>Lihat Detail</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-
-                    <!-- Komitmen K3 Summary Card -->
-                    <div class="summary-card komitmen-k3-card fade-up" style="transition-delay: 0.1s;">
-                        <div class="summary-card-header">
-                            <div class="summary-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
-                                <i class="fas fa-handshake"></i>
-                            </div>
-                            <div class="summary-title">
-                                <h5>Komitmen K3</h5>
-                                <span class="summary-subtitle">Safety Commitment</span>
-                            </div>
-                        </div>
-                        <div class="summary-card-body">
-                            <div class="komitmen-percentage">
-                                <div class="percentage-circle"
-                                    style="--percentage: {{ $dashboardData['komitmen_k3']['percentage'] ?? 0 }};">
-                                    <span
-                                        class="percentage-value">{{ $dashboardData['komitmen_k3']['percentage'] ?? 0 }}%</span>
-                                </div>
-                            </div>
-                            <div class="summary-stats-row" style="margin-top: 12px;">
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-closed">{{ $dashboardData['komitmen_k3']['sudah_upload'] ?? 0 }}</span>
-                                    <span class="stat-label">Sudah</span>
-                                </div>
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-open">{{ $dashboardData['komitmen_k3']['belum_upload'] ?? 0 }}</span>
-                                    <span class="stat-label">Belum</span>
-                                </div>
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-total">{{ $dashboardData['komitmen_k3']['total_users'] ?? 0 }}</span>
-                                    <span class="stat-label">Total User</span>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="{{ url('/she/komitmen-k3') }}" class="summary-card-link">
-                            <span>Lihat Detail</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-
-                    <!-- Safety Patrol Summary Card -->
-                    <div class="summary-card safety-patrol-card fade-up" style="transition-delay: 0.2s;">
-                        <div class="summary-card-header">
-                            <div class="summary-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
-                            <div class="summary-title">
-                                <h5>Safety Patrol</h5>
-                                <span class="summary-subtitle">Inspection Reports</span>
-                            </div>
-                        </div>
-                        <div class="summary-card-body">
-                            <div class="summary-stats-row">
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-open">{{ $dashboardData['safety_patrol']['open'] ?? 0 }}</span>
-                                    <span class="stat-label">Open</span>
-                                </div>
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-progress">{{ $dashboardData['safety_patrol']['progress'] ?? 0 }}</span>
-                                    <span class="stat-label">Progress</span>
-                                </div>
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-closed">{{ $dashboardData['safety_patrol']['closed'] ?? 0 }}</span>
-                                    <span class="stat-label">Closed</span>
-                                </div>
-                            </div>
-                            <div class="progress-bar-container">
-                                <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill"
-                                        style="width: {{ $dashboardData['safety_patrol']['percentage_closed'] ?? 0 }}%; background: linear-gradient(90deg, #3b82f6, #2563eb);">
-                                    </div>
-                                </div>
-                                <span class="progress-text">{{ $dashboardData['safety_patrol']['percentage_closed'] ?? 0 }}%
-                                    Closed</span>
-                            </div>
-                        </div>
-                        <a href="{{ url('/she/safety-patrol') }}" class="summary-card-link">
-                            <span>Lihat Detail</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-
-                    <!-- Safety Riding Summary Card -->
-                    <div class="summary-card safety-riding-card fade-up" style="transition-delay: 0.3s;">
-                        <div class="summary-card-header">
-                            <div class="summary-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                                <i class="fas fa-motorcycle"></i>
-                            </div>
-                            <div class="summary-title">
-                                <h5>Safety Riding</h5>
-                                <span class="summary-subtitle">Vehicle Violations</span>
-                            </div>
-                        </div>
-                        <div class="summary-card-body">
-                            <div class="summary-stats-row">
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-open">{{ $dashboardData['safety_riding']['open'] ?? 0 }}</span>
-                                    <span class="stat-label">Open</span>
-                                </div>
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-progress">{{ $dashboardData['safety_riding']['progress'] ?? 0 }}</span>
-                                    <span class="stat-label">Progress</span>
-                                </div>
-                                <div class="summary-stat">
-                                    <span
-                                        class="stat-value stat-closed">{{ $dashboardData['safety_riding']['closed'] ?? 0 }}</span>
-                                    <span class="stat-label">Closed</span>
-                                </div>
-                            </div>
-                            <div class="violation-badge">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span>{{ $dashboardData['safety_riding']['total_violations'] ?? 0 }} Total
-                                    Pelanggaran</span>
-                            </div>
-                        </div>
-                        <a href="{{ url('/she/safety-riding') }}" class="summary-card-link">
-                            <span>Lihat Detail</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-
-                    <!-- Program Safety Overall Summary Card -->
-                    <div class="summary-card program-safety-card fade-up" style="transition-delay: 0.4s;">
-
-                        <div class="summary-card-header">
-                            <div class="summary-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                <i class="fas fa-clipboard-check"></i>
-                            </div>
-                            <div class="summary-title">
-                                <h5>Program Safety</h5>
-                                <span class="summary-subtitle">Overall Summary</span>
-                            </div>
-                        </div>
-                        <div class="summary-card-body">
-                            <div class="overall-stats">
-                                <div class="overall-stat-big">
-                                    <span
-                                        class="big-number">{{ $dashboardData['program_safety']['total_activities'] ?? 0 }}</span>
-                                    <span class="big-label">Total Program</span>
-                                </div>
-                                <div class="overall-completion">
-                                    <div class="completion-ring"
-                                        style=" --progress: {{ $dashboardData['program_safety']['completion_rate'] ?? 0 }};">
-                                        <span>{{ $dashboardData['program_safety']['completion_rate'] ?? 0 }}%</span>
-                                    </div>
-                                    <span class="completion-label">Completion</span>
-                                </div>
-                            </div>
-                            <div class="mini-stats-row">
-                                <div class="mini-stat">
-                                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                    <span>{{ $dashboardData['program_safety']['total_completed'] ?? 0 }} Selesai</span>
-                                </div>
-                                <div class="mini-stat">
-                                    <i class="fas fa-clock" style="color: #f59e0b;"></i>
-                                    <span>{{ $dashboardData['program_safety']['total_pending'] ?? 0 }} Pending</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Safety Performance Matrix Section -->
-            <div class="matrix-container fade-up" style="margin-top: 24px;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-800 m-0">Safety Performance Matrix</h5>
-                    <button class="btn btn-success btn-sm rounded-pill px-3 border shadow-sm"
-                        onclick="exportMatrixToExcel()">
-                        <i class="fas fa-file-excel me-2"></i> Export Excel
-                    </button>
-                </div>
-
-                <div class="matrix-scroll">
-                    <table class="table table-bordered table-sm align-middle text-center matrix-table" id="matrixTable">
-                        <thead>
-                            <!-- Header Row 1: Main Labels -->
-                            <tr>
-                                <th rowspan="3" class="sticky-col sticky-col-no">NO</th>
-                                <th rowspan="3" class="sticky-col sticky-col-item">ITEM</th>
-
-                                @foreach($matrixData['header']['historical_labels'] as $label)
-                                    <th rowspan="3" class="col-hist">{{ $label }}</th>
-                                @endforeach
-
-                                <th colspan="13" class="col-month">{{ $matrixData['header']['fiscal_label'] }}</th>
-                                <th colspan="{{ $matrixData['header']['days_in_month'] + 1 }}" class="col-day">
-                                    {{ $matrixData['header']['fiscal_label'] }}
-                                </th>
-                            </tr>
-
-                            <!-- Header Row 2: Months & Specific Month Label -->
-                            <tr>
-                                @php
-                                    $monthNames = ['APR', 'MAY', 'JUN', 'JUL', 'AGS', 'SEP', 'OKT', 'NOP', 'DES', 'JAN', 'PEB', 'MAR'];
-                                @endphp
-                                @foreach($monthNames as $mName)
-                                    <th rowspan="2" class="col-month">{{ $mName }}</th>
-                                @endforeach
-                                <th rowspan="2" class="col-total col-month">JML</th>
-
-                                <th colspan="{{ $matrixData['header']['days_in_month'] + 1 }}" class="col-day">
-                                    {{ $matrixData['header']['month_label'] }}
-                                </th>
-                            </tr>
-
-                            <!-- Header Row 3: Days -->
-                            <tr>
-                                @for($d = 1; $d <= 31; $d++)
-                                    @if($d <= $matrixData['header']['days_in_month'])
-                                        <th class="col-day">{{ $d }}</th>
-                                    @endif
-                                @endfor
-                                <th class="col-total col-day">JML</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php $rowNo = 1; @endphp
-                            @foreach($matrixData['matrix'] as $item => $data)
-                                <tr>
-                                    <td class="sticky-col sticky-col-no">{{ $rowNo++ }}</td>
-                                    <td class="sticky-col sticky-col-item matrix-item-name">{{ $item }}</td>
-
-                                    <!-- Historical -->
-                                    @foreach($data['historical'] as $val)
-                                        <td class="col-hist">{{ $val }}</td>
-                                    @endforeach
-
-                                    <!-- Months -->
-                                    @foreach($data['months'] as $val)
-                                        <td class="col-month">{{ $val }}</td>
-                                    @endforeach
-                                    <td class="col-total col-month">{{ $data['total_fiscal'] }}</td>
-
-                                    <!-- Days -->
-                                    @foreach($data['days'] as $val)
-                                        @if($val !== null)
-                                            <td class="col-day">{{ $val }}</td>
-                                        @endif
-                                    @endforeach
-                                    <td class="col-total col-day">{{ $data['total_month'] }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-
-
-
-
-
-            <div class="update-time fade-up">
-                <span id="last-update">
-                    Data periode:
-                    @if(request()->hasAny(['start_date', 'end_date']))
-                        {{ date('d M Y', strtotime(request('start_date', date('Y-m-d', strtotime('-30 days'))))) }}
-                        -
-                        {{ date('d M Y', strtotime(request('end_date', date('Y-m-d')))) }}
-                    @else
-                        {{ now()->format('d M Y') }}
-                    @endif
-                    | Terakhir diperbarui: {{ now()->format('H:i:s') }}
-                </span> <button onclick="refreshDashboard()" style="margin-left: 10px; padding: 2px 8px; font-size: 0.8rem; background: #3b82f6; color: white;
-                                        border: none; border-radius: 4px; cursor: pointer;">
-                    Refresh
-                </button>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, {
-                threshold: 0.1,
-                rootMargin: "0px 0px -60px 0px"
-            });
-
-            document.querySelectorAll('.fade-up').forEach(el => {
-                observer.observe(el);
-            });
-
-            // Set tanggal akhir default ke hari ini
-            const endDateInput = document.getElementById('end_date');
-            const startDateInput = document.getElementById('start_date');
-
-            if (!endDateInput.value) {
-                endDateInput.value = new Date().toISOString().split('T')[0];
+    /* ----------------------------------------------------- */
+            /* 7. MATRIX TABLE STYLES */
+            /* ----------------------------------------------------- */
+            .matrix-container {
+                background: #ffffff;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                margin-bottom: 30px;
             }
 
-            // Set tanggal awal default ke 30 hari sebelumnya
-            if (!startDateInput.value) {
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+            .matrix-scroll {
+                overflow-x: auto;
+                width: 100%;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                padding-bottom: 5px;
+                position: relative;
             }
 
-            // Validasi tanggal
-            startDateInput.addEventListener('change', function () {
-                if (endDateInput.value && new Date(this.value) > new Date(endDateInput.value)) {
-                    alert('Tanggal awal tidak boleh lebih besar dari tanggal akhir');
-                    this.value = endDateInput.value;
-                }
-            });
-
-            endDateInput.addEventListener('change', function () {
-                if (startDateInput.value && new Date(this.value) < new Date(startDateInput.value)) {
-                    alert('Tanggal akhir tidak boleh lebih kecil dari tanggal awal');
-                    this.value = startDateInput.value;
-                }
-            });
-
-            // Auto-refresh setiap 5 menit
-            setInterval(refreshDashboard, 300000);
-
-            // Cek apakah hari ini ada loss day
-            checkTodayLossDay();
-        });
-
-        function resetFilters() {
-            const filterForm = document.getElementById('filterForm');
-            if (filterForm) filterForm.reset();
-
-            // Set nilai default
-            const today = new Date().toISOString().split('T')[0];
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-            const endDateEl = document.getElementById('end_date');
-            const startDateEl = document.getElementById('start_date');
-            const sectionEl = document.getElementById('section');
-            const statusEl = document.getElementById('status');
-
-            if (endDateEl) endDateEl.value = today;
-            if (startDateEl) startDateEl.value = thirtyDaysAgo.toISOString().split('T')[0];
-            if (sectionEl) sectionEl.value = '';
-            if (statusEl) statusEl.value = '';
-
-            // Re-apply filter automatically after reset
-            if (filterForm) filterForm.submit();
-        }
-
-        function refreshDashboard() {
-            const lastUpdateEl = document.getElementById('last-update');
-            const refreshBtn = lastUpdateEl.nextElementSibling;
-
-            // Tampilkan loading
-            refreshBtn.innerHTML = '<span class="loading-spinner"></span>Loading...';
-            refreshBtn.disabled = true;
-
-            // Ambil nilai filter
-            const startDate = document.getElementById('start_date').value;
-            const endDate = document.getElementById('end_date').value;
-            const section = document.getElementById('section').value;
-            const status = document.getElementById('status').value;
-
-            // Build URL dengan parameter
-            let url = '/she/dashboard/data';
-            const params = new URLSearchParams();
-
-            if (startDate) params.append('start_date', startDate);
-            if (endDate) params.append('end_date', endDate);
-            if (section) params.append('section', section);
-            if (status) params.append('status', status);
-
-            const queryString = params.toString();
-            if (queryString) {
-                url += '?' + queryString;
+            /* Custom Scrollbar for Matrix */
+            .matrix-scroll::-webkit-scrollbar {
+                height: 10px;
             }
 
-            console.log('Fetching from:', url);
-
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response data:', data);
-                    if (data.success) {
-                        updateDashboardData(data.data);
-
-                        // Update timestamp
-                        const now = new Date();
-                        const startDateFormatted = startDate ? new Date(startDate).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric'
-                        }) : 'Semua';
-
-                        const endDateFormatted = endDate ? new Date(endDate).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric'
-                        }) : 'Semua';
-
-                        lastUpdateEl.innerHTML = `
-                                                            Data periode: ${startDateFormatted} - ${endDateFormatted}
-                                                            | Terakhir diperbarui: ${now.toLocaleTimeString('id-ID')}
-                                                        `;
-
-                        // Cek loss day
-                        checkTodayLossDay();
-                    } else {
-                        throw new Error(data.message || 'Unknown error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error refreshing dashboard:', error);
-                    lastUpdateEl.innerHTML += ` <span style="color: #dc2626;">(Error: ${error.message})</span>`;
-                })
-                .finally(() => {
-                    refreshBtn.innerHTML = 'Refresh';
-                    refreshBtn.disabled = false;
-                });
-        }
-
-        function updateDashboardData(data) {
-            console.log('Updating dashboard with data:', data);
-
-            // Update total safety days
-            const totalDaysEl = document.getElementById('total-safety-days');
-            if (totalDaysEl) {
-                totalDaysEl.textContent = data.total_safety_days || 0;
+            .matrix-scroll::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 10px;
             }
 
-            const totalCard = document.getElementById('total-safety-card');
-            if (totalCard) {
-                if (data.total_safety_days == 0) {
-                    totalCard.classList.add('today-warning');
-                    const cardLabel = totalCard.querySelector('.card-body .card-label');
-                    if (cardLabel) {
-                        cardLabel.textContent = 'Hari ini ada loss day';
-                    }
-                } else {
-                    totalCard.classList.remove('today-warning');
-                    const cardLabel = totalCard.querySelector('.card-body .card-label');
-                    if (cardLabel) {
-                        cardLabel.textContent = `Streak: ${data.current_streak_days || 0} hari`;
-                    }
-                }
-
-                // Update reset info
-                const header = totalCard.querySelector('.card-header');
-                if (header) {
-                    let resetBadge = header.querySelector('.reset-badge');
-                    let resetInfo = header.querySelector('.reset-info');
-
-                    if (data.last_reset_date && data.last_reset_date !== 'No reset yet') {
-                        if (!resetBadge) {
-                            resetBadge = document.createElement('span');
-                            resetBadge.className = 'reset-badge';
-                            resetBadge.textContent = 'RESET';
-                            header.appendChild(resetBadge);
-                        }
-
-                        if (!resetInfo) {
-                            resetInfo = document.createElement('small');
-                            resetInfo.className = 'reset-info';
-                            header.appendChild(resetInfo);
-                        }
-                        resetInfo.textContent = `Terakhir: ${data.last_reset_date}`;
-                    } else {
-                        if (resetBadge) resetBadge.remove();
-                        if (resetInfo) resetInfo.remove();
-                    }
-                }
+            .matrix-scroll::-webkit-scrollbar-thumb {
+                background: #3b82f6;
+                border-radius: 10px;
+                border: 3px solid #f1f5f9;
             }
 
-            // Update incident counts - Mapping antara key JSON dan ID HTML
-            if (data.incident_counts) {
-                const categoryMapping = {
-                    'Work Accident (Loss day)': 'card-work-accident-loss-day',
-                    'Work Accident (Light)': 'card-work-accident-light',
-                    'Traffic Accident': 'card-traffic-accident',
-                    'Fire Accident': 'card-fire-accident',
-                    'Forklift Accident': 'card-forklift-accident',
-                    'Molten Spill Incident': 'card-molten-spill-incident',
-                    'Property Damage Incident': 'card-property-damage-incident'
-                };
-
-                Object.keys(data.incident_counts).forEach(category => {
-                    const cardId = categoryMapping[category];
-                    if (!cardId) {
-                        console.warn('No mapping found for category:', category);
-                        return;
-                    }
-
-                    const card = document.getElementById(cardId);
-                    if (card) {
-                        const count = data.incident_counts[category];
-                        const countEl = card.querySelector('.incident-count');
-
-                        if (countEl) {
-                            countEl.textContent = count;
-                        }
-
-                        // Update card styling
-                        if (count > 0) {
-                            card.classList.add('has-incident');
-                            card.classList.remove('no-incident');
-                        } else {
-                            card.classList.add('no-incident');
-                            card.classList.remove('has-incident');
-                        }
-                    } else {
-                        console.warn('Card not found for ID:', cardId);
-                    }
-                });
-            }
-        }
-
-
-        function checkTodayLossDay() {
-
-            // Ambil elemen tanggal reset
-            const resetInfo = document.getElementById('last-reset-date');
-
-            // Format tanggal hari ini (Indonesia)
-            const today = new Date();
-            const todayString = today.toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            });
-
-            // Hapus notifikasi lama
-            const oldNotif = document.querySelector('.loss-day-notification');
-            if (oldNotif) oldNotif.remove();
-
-            // Jika ADA reset info
-            if (resetInfo) {
-
-                const resetText = resetInfo.innerText.replace('Terakhir:', '').trim();
-
-                // 🔴 JIKA RESET = HARI INI
-                if (resetText === todayString) {
-                    showRedAlert();
-                    return;
-                }
+            .matrix-scroll::-webkit-scrollbar-thumb:hover {
+                background: #2563eb;
             }
 
-            // 🟢 JIKA BUKAN HARI INI
-            showGreenAlert();
-        }
+            .matrix-table {
+                min-width: 1400px;
+                border-collapse: separate;
+                border-spacing: 0;
+                margin-bottom: 0;
+            }
 
-        function showRedAlert() {
-            const notif = document.createElement('div');
-            notif.className = 'loss-day-notification';
-            notif.style.cssText = `
-                                    position: fixed;
-                                    top: 70px;
-                                    right: 20px;
-                                    background: #dc2626;
-                                    color: white;
-                                    padding: 14px 18px;
-                                    border-radius: 8px;
-                                    box-shadow: 0 4px 12px rgba(220,38,38,0.3);
-                                    z-index: 1000;
-                                    animation: slideIn 0.3s ease-out;
-                                `;
-            notif.innerHTML = `
-                                    <strong>⚠️ PERINGATAN!</strong><br>
-                                    Terdapat Work Accident (Loss day) <b>hari ini</b>.<br>
-                                    Total Safety Work Day akan direset besok.
-                                    <button onclick="this.parentElement.remove()"
-                                        style="position:absolute;top:6px;right:8px;background:none;border:none;color:white;font-size:16px;cursor:pointer;">
-                                        ×
+            .matrix-table th {
+                background: #f8fafc;
+                color: #334155;
+                font-weight: 700;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                padding: 10px 4px;
+                white-space: nowrap;
+                border: 1px solid #e2e8f0;
+                vertical-align: middle;
+            }
+
+            .matrix-table td {
+                font-size: 0.8rem;
+                padding: 8px 4px;
+                border: 1px solid #f1f5f9;
+                color: #1e293b;
+                background: white;
+            }
+
+            /* Sticky Columns */
+            .sticky-col {
+                position: sticky;
+                z-index: 10;
+                background: white !important;
+            }
+
+            .sticky-col-no {
+                left: 0;
+                width: 45px;
+                min-width: 45px;
+                border-right: 1px solid #e2e8f0 !important;
+            }
+
+            .sticky-col-item {
+                left: 45px;
+                min-width: 250px;
+                text-align: left !important;
+                padding-left: 15px !important;
+                border-right: 2px solid #cbd5e1 !important;
+                font-weight: 700;
+                color: #0f172a;
+            }
+
+            /* Hover effect for rows */
+            .matrix-table tbody tr:hover td {
+                background-color: #f1f5f9 !important;
+            }
+
+            .col-hist { background-color: #f8fafc !important; }
+            .col-month { background-color: #fff1f2 !important; }
+            .col-day { background-color: #f0f9ff !important; }
+            .col-total { font-weight: 800; background-color: #f1f5f9 !important; color: #1e293b; }
+
+            /* Professional Dropdown Styles */
+            .select-professional {
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+                background-size: 16px;
+                padding-right: 40px !important;
+                border: 1px solid #cbd5e1 !important;
+                background-color: white !important;
+                color: #0f172a !important;
+                font-weight: 700 !important;
+                transition: all 0.2s ease;
+            }
+
+            .select-professional:hover {
+                border-color: #3b82f6 !important;
+                background-color: #f8fafc !important;
+            }
+
+            .select-professional:focus {
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+                border-color: #3b82f6 !important;
+            }
+        </style>
+
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+            <main class="content">
+                <div class="content-inner">
+
+                    <div class="page-title fade-up">DASHBOARD MONITORING</div>
+                    <div class="page-subtitle fade-up">Summary of safety performance AICC</div>
+
+                    <!-- Filter Section Compact -->
+                    <div class="filter-section fade-up">
+                        <form id="filterForm" method="GET" action="{{ url('/she/dashboard') }}">
+                            <div class="filter-form-row">
+                                <div class="filter-group">
+                                    <label class="filter-label" for="start_date">Mulai</label>
+                                    <input type="date" id="start_date" name="start_date" class="filter-input"
+                                        value="{{ request('start_date', date('Y-m-d', strtotime('-30 days'))) }}">
+                                </div>
+
+                                <div class="filter-group">
+                                    <label class="filter-label" for="end_date">Sampai</label>
+                                    <input type="date" id="end_date" name="end_date" class="filter-input"
+                                        value="{{ request('end_date', date('Y-m-d')) }}">
+                                </div>
+
+                                <div class="filter-group">
+                                    <label class="filter-label" for="section">Section</label>
+                                    <select id="section" name="section" class="filter-select">
+                                        <option value="">Semua Section</option>
+                                        @foreach($sections as $section)
+                                            <option value="{{ $section->id }}" {{ request('section') == $section->id ? 'selected' : '' }}>
+                                                {{ $section->section }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="filter-actions">
+                                    <button type="submit" class="filter-btn btn-apply">
+                                        <i class="fas fa-filter"></i> Terapkan
                                     </button>
-                                `;
-            document.body.appendChild(notif);
+                                    <button type="button" class="filter-btn btn-reset" onclick="resetFilters()">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
 
-            setTimeout(() => notif.remove(), 10000);
-        }
+                    <!-- Filter Info Display -->
+                    @if(request()->hasAny(['start_date', 'end_date', 'section', 'status']))
+                        <div class="filter-info fade-up"
+                            style="margin-bottom: 15px; padding: 10px; background: #f0f9ff; border-radius: 6px; border: 1px solid #bae6fd;">
+                            <strong style="color: #0369a1;">
+                                <i class="fas fa-info-circle"></i> Filter Aktif:
+                            </strong>
+                            <span style="font-size: 0.9rem; color: #0c4a6e;">
+                                @php
+                                    $filterText = [];
+                                    if (request('start_date'))
+                                        $filterText[] = 'Dari: ' . date('d M Y', strtotime(request('start_date')));
+                                    if (request('end_date'))
+                                        $filterText[] = 'Sampai: ' . date('d M Y', strtotime(request('end_date')));
+                                    if (request('section')) {
+                                        $selectedSection = $sections->firstWhere('id', request('section'));
+                                        $filterText[] = 'Section: ' . ($selectedSection->section ?? 'Unknown');
+                                    }
+                                    if (request('status')) {
+                                        $statusLabels = [
+                                            'open' => 'Open',
+                                            'closed' => 'Closed',
+                                            'progress' => 'In Progress'
+                                        ];
+                                        $filterText[] = 'Status: ' . ($statusLabels[request('status')] ?? request('status'));
+                                    }
+                                @endphp
+                                {{ implode(' | ', $filterText) }}
+                                <a href="{{ url('/she/dashboard') }}" style="margin-left: 10px; color: #dc2626; text-decoration: none;">
+                                    <i class="fas fa-times"></i> Hapus Filter
+                                </a>
+                            </span>
+                        </div>
+                    @endif
 
-        function showGreenAlert() {
-            const notif = document.createElement('div');
-            notif.className = 'loss-day-notification';
-            notif.style.cssText = `
-                                    position: fixed;
-                                    top: 70px;
-                                    right: 20px;
-                                    background: #16a34a;
-                                    color: white;
-                                    padding: 12px 16px;
-                                    border-radius: 8px;
-                                    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
-                                    z-index: 1000;
-                                `;
-            notif.innerHTML = `
-                                    <strong>✅ BAGUS!</strong><br>
-                                    Hari ini tidak ada Accident.
-                                `;
-            document.body.appendChild(notif);
+                    <div class="dashboard-grid-container">
 
-            setTimeout(() => notif.remove(), 5000);
-        }
+                        <section class="grid card-total-section">
+                            <div class="card card-total fade-up {{ $dashboardData['total_safety_days'] == 0 ? 'today-warning' : '' }}"
+                                id="total-safety-card">
+                                <div class="card-header">
+                                    Total Safety Work Day
+                                    @if($dashboardData['last_reset_date'])
+                                        <span class="reset-badge">RESET</span>
+                                        <small class="reset-info" id="last-reset-date">
+                                            Terakhir: {{ $dashboardData['last_reset_date'] }}
+                                        </small>
+                                    @endif
+                                </div>
+                                <div class="card-body">
+                                    <span id="total-safety-days">{{ $dashboardData['total_safety_days'] }}</span>
+                                    @if($dashboardData['total_safety_days'] == 0)
+                                        <span class="card-label">Hari ini ada loss day</span>
+                                    @else
+                                        <span class="card-label">Streak: {{ $dashboardData['current_streak_days'] }} hari</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="grid grid-tiles">
+                            @php
+                                $categories = [
+                                    'Work Accident (Loss day)' => ['id' => 'work-accident-loss-day', 'name' => 'Work Accident (Loss day)'],
+                                    'Work Accident (Light)' => ['id' => 'work-accident-light', 'name' => 'Work Accident (Light)'],
+                                    'Traffic Accident' => ['id' => 'traffic-accident', 'name' => 'Traffic Accident'],
+                                    'Fire Accident' => ['id' => 'fire-accident', 'name' => 'Fire Accident'],
+                                    'Forklift Accident' => ['id' => 'forklift-accident', 'name' => 'Forklift Accident'],
+                                    'Molten Spill Incident' => ['id' => 'molten-spill-incident', 'name' => 'Molten Spill Incident'],
+                                    'Property Damage Incident' => ['id' => 'property-damage-incident', 'name' => 'Property Damage Incident']
+                                ];
+
+                                $delay = 0.1;
+                            @endphp
+
+                            @foreach($categories as $key => $categoryInfo)
+                                @php
+                                    $count = $dashboardData['incident_counts'][$key] ?? 0;
+                                    $cardClass = $count > 0 ? 'has-incident' : 'no-incident';
+                                    $cardId = 'card-' . $categoryInfo['id'];
+                                @endphp
+
+                                <div class="card fade-up {{ $cardClass }}" style="transition-delay: {{ $delay }}s;" id="{{ $cardId }}">
+                                    <div class="card-header">{{ $categoryInfo['name'] }}</div>
+                                    <div class="card-body">
+                                        <span class="incident-count" data-category="{{ $key }}">
+                                            {{ $count }}
+                                        </span>
+                                    </div>
+                                </div>
+                                @php $delay += 0.1; @endphp
+                            @endforeach
+                        </section>
+
+                    </div>
+
+                    <!-- Summary Cards Section -->
+                    <div class="summary-section fade-up" style="margin-top: 24px;">
+                        {{-- <h4
+                            style="font-size: 1.1rem; font-weight: 700; color: #1f2937; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-chart-pie" style="color: #6366f1;"></i>
+                            Program Safety Summary
+                        </h4> --}}
+
+                        <div class="summary-grid">
+                            <!-- Hyari Hatto Summary Card -->
+                            <div class="summary-card hyari-hatto-card fade-up">
+                                <div class="summary-card-header">
+                                    <div class="summary-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="summary-title">
+                                        <h5>Hyari Hatto</h5>
+                                        <span class="summary-subtitle">Near Miss Reports</span>
+                                    </div>
+                                </div>
+                                <div class="summary-card-body">
+                                    <div class="summary-stats-row">
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-open">{{ $dashboardData['hyari_hatto']['open'] ?? 0 }}</span>
+                                            <span class="stat-label">Open</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-closed">{{ $dashboardData['hyari_hatto']['closed'] ?? 0 }}</span>
+                                            <span class="stat-label">Closed</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-total">{{ $dashboardData['hyari_hatto']['total'] ?? 0 }}</span>
+                                            <span class="stat-label">Total</span>
+                                        </div>
+                                    </div>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar-bg">
+                                            <div class="progress-bar-fill"
+                                                style="width: {{ $dashboardData['hyari_hatto']['percentage_closed'] ?? 0 }}%; background: linear-gradient(90deg, #10b981, #059669);">
+                                            </div>
+                                        </div>
+                                        <span class="progress-text">{{ $dashboardData['hyari_hatto']['percentage_closed'] ?? 0 }}%
+                                            Closed</span>
+                                    </div>
+                                </div>
+                                <a href="{{ url('/she/hyari-hatto') }}" class="summary-card-link">
+                                    <span>Lihat Detail</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+
+                            <!-- Komitmen K3 Summary Card -->
+                            <div class="summary-card komitmen-k3-card fade-up" style="transition-delay: 0.1s;">
+                                <div class="summary-card-header">
+                                    <div class="summary-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                                        <i class="fas fa-handshake"></i>
+                                    </div>
+                                    <div class="summary-title">
+                                        <h5>Komitmen K3</h5>
+                                        <span class="summary-subtitle">Safety Commitment</span>
+                                    </div>
+                                </div>
+                                <div class="summary-card-body">
+                                    <div class="komitmen-percentage">
+                                        <div class="percentage-circle"
+                                            style="--percentage: {{ $dashboardData['komitmen_k3']['percentage'] ?? 0 }};">
+                                            <span
+                                                class="percentage-value">{{ $dashboardData['komitmen_k3']['percentage'] ?? 0 }}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="summary-stats-row" style="margin-top: 12px;">
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-closed">{{ $dashboardData['komitmen_k3']['sudah_upload'] ?? 0 }}</span>
+                                            <span class="stat-label">Sudah</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-open">{{ $dashboardData['komitmen_k3']['belum_upload'] ?? 0 }}</span>
+                                            <span class="stat-label">Belum</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-total">{{ $dashboardData['komitmen_k3']['total_users'] ?? 0 }}</span>
+                                            <span class="stat-label">Total User</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="{{ url('/she/komitmen-k3') }}" class="summary-card-link">
+                                    <span>Lihat Detail</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+
+                            <!-- Safety Patrol Summary Card -->
+                            <div class="summary-card safety-patrol-card fade-up" style="transition-delay: 0.2s;">
+                                <div class="summary-card-header">
+                                    <div class="summary-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="summary-title">
+                                        <h5>Safety Patrol</h5>
+                                        <span class="summary-subtitle">Inspection Reports</span>
+                                    </div>
+                                </div>
+                                <div class="summary-card-body">
+                                    <div class="summary-stats-row">
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-open">{{ $dashboardData['safety_patrol']['open'] ?? 0 }}</span>
+                                            <span class="stat-label">Open</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-progress">{{ $dashboardData['safety_patrol']['progress'] ?? 0 }}</span>
+                                            <span class="stat-label">Progress</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-closed">{{ $dashboardData['safety_patrol']['closed'] ?? 0 }}</span>
+                                            <span class="stat-label">Closed</span>
+                                        </div>
+                                    </div>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar-bg">
+                                            <div class="progress-bar-fill"
+                                                style="width: {{ $dashboardData['safety_patrol']['percentage_closed'] ?? 0 }}%; background: linear-gradient(90deg, #3b82f6, #2563eb);">
+                                            </div>
+                                        </div>
+                                        <span class="progress-text">{{ $dashboardData['safety_patrol']['percentage_closed'] ?? 0 }}%
+                                            Closed</span>
+                                    </div>
+                                </div>
+                                <a href="{{ url('/she/safety-patrol') }}" class="summary-card-link">
+                                    <span>Lihat Detail</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+
+                            <!-- Safety Riding Summary Card -->
+                            <div class="summary-card safety-riding-card fade-up" style="transition-delay: 0.3s;">
+                                <div class="summary-card-header">
+                                    <div class="summary-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                                        <i class="fas fa-motorcycle"></i>
+                                    </div>
+                                    <div class="summary-title">
+                                        <h5>Safety Riding</h5>
+                                        <span class="summary-subtitle">Vehicle Violations</span>
+                                    </div>
+                                </div>
+                                <div class="summary-card-body">
+                                    <div class="summary-stats-row">
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-open">{{ $dashboardData['safety_riding']['open'] ?? 0 }}</span>
+                                            <span class="stat-label">Open</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-progress">{{ $dashboardData['safety_riding']['progress'] ?? 0 }}</span>
+                                            <span class="stat-label">Progress</span>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <span
+                                                class="stat-value stat-closed">{{ $dashboardData['safety_riding']['closed'] ?? 0 }}</span>
+                                            <span class="stat-label">Closed</span>
+                                        </div>
+                                    </div>
+                                    <div class="violation-badge">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        <span>{{ $dashboardData['safety_riding']['total_violations'] ?? 0 }} Total
+                                            Pelanggaran</span>
+                                    </div>
+                                </div>
+                                <a href="{{ url('/she/safety-riding') }}" class="summary-card-link">
+                                    <span>Lihat Detail</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+
+                            <!-- Program Safety Overall Summary Card -->
+                            <div class="summary-card program-safety-card fade-up" style="transition-delay: 0.4s;">
+
+                                <div class="summary-card-header">
+                                    <div class="summary-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                        <i class="fas fa-clipboard-check"></i>
+                                    </div>
+                                    <div class="summary-title">
+                                        <h5>Program Safety</h5>
+                                        <span class="summary-subtitle">Overall Summary</span>
+                                    </div>
+                                </div>
+                                <div class="summary-card-body">
+                                    <div class="overall-stats">
+                                        <div class="overall-stat-big">
+                                            <span
+                                                class="big-number">{{ $dashboardData['program_safety']['total_activities'] ?? 0 }}</span>
+                                            <span class="big-label">Total Program</span>
+                                        </div>
+                                        <div class="overall-completion">
+                                            <div class="completion-ring"
+                                                style=" --progress: {{ $dashboardData['program_safety']['completion_rate'] ?? 0 }};">
+                                                <span>{{ $dashboardData['program_safety']['completion_rate'] ?? 0 }}%</span>
+                                            </div>
+                                            <span class="completion-label">Completion</span>
+                                        </div>
+                                    </div>
+                                    <div class="mini-stats-row">
+                                        <div class="mini-stat">
+                                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                            <span>{{ $dashboardData['program_safety']['total_completed'] ?? 0 }} Selesai</span>
+                                        </div>
+                                        <div class="mini-stat">
+                                            <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                                            <span>{{ $dashboardData['program_safety']['total_pending'] ?? 0 }} Pending</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Safety Performance Matrix Section -->
+                    <div class="matrix-container fade-up" style="margin-top: 24px;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center">
+                                <h5 class="fw-800 m-0">Safety Performance Matrix</h5>
+                                <select id="matrix-year-select" class="form-select form-select-sm ms-3 select-professional rounded-pill px-3 shadow-sm" style="width: auto; cursor: pointer;" onchange="updateMatrixYear(this.value)">
+                                    @foreach($years as $year)
+                                        <option value="{{ $year }}" {{ $matrixData['header']['fiscal_year_start'] == $year ? 'selected' : '' }}>
+                                            FY {{ $year }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <select id="matrix-month-select" class="form-select form-select-sm ms-2 select-professional rounded-pill px-3 shadow-sm" style="width: auto; cursor: pointer;" onchange="updateMatrixMonth(this.value)">
+                                    @foreach($matrixData['fiscal_months'] as $m)
+                                        <option value="{{ $m['index'] }}" {{ $matrixData['header']['matrix_month_index'] == $m['index'] ? 'selected' : '' }}>
+                                            {{ $m['label'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button class="btn btn-success btn-sm rounded-pill px-3 border shadow-sm"
+                                onclick="exportMatrixToExcel()">
+                                <i class="fas fa-file-excel me-2"></i> Export Excel
+                            </button>
+                        </div>
+
+                        <div class="matrix-scroll">
+                            <table class="table table-bordered table-sm align-middle text-center matrix-table" id="matrixTable">
+                                <thead>
+                                    <!-- Header Row 1: Main Labels -->
+                                    <tr>
+                                        <th rowspan="3" class="sticky-col sticky-col-no">NO</th>
+                                        <th rowspan="3" class="sticky-col sticky-col-item">ITEM</th>
+
+                                        @foreach($matrixData['header']['historical_labels'] as $label)
+                                            <th rowspan="3" class="col-hist">{{ $label }}</th>
+                                        @endforeach
+
+                                        <th colspan="13" class="col-month">{{ $matrixData['header']['fiscal_label'] }}</th>
+                                        <th colspan="{{ $matrixData['header']['days_in_month'] + 1 }}" class="col-day">
+                                            {{ $matrixData['header']['fiscal_label'] }}
+                                        </th>
+                                    </tr>
+
+                                    <!-- Header Row 2: Months & Specific Month Label -->
+                                    <tr>
+                                        @php
+                                            $monthNames = ['APR', 'MAY', 'JUN', 'JUL', 'AGS', 'SEP', 'OKT', 'NOP', 'DES', 'JAN', 'PEB', 'MAR'];
+                                        @endphp
+                                        @foreach($monthNames as $mName)
+                                            <th rowspan="2" class="col-month">{{ $mName }}</th>
+                                        @endforeach
+                                        <th rowspan="2" class="col-total col-month">JML</th>
+
+                                        <th colspan="{{ $matrixData['header']['days_in_month'] + 1 }}" class="col-day">
+                                            {{ $matrixData['header']['month_label'] }}
+                                        </th>
+                                    </tr>
+
+                                    <!-- Header Row 3: Days -->
+                                    <tr>
+                                        @for($d = 1; $d <= 31; $d++)
+                                            @if($d <= $matrixData['header']['days_in_month'])
+                                                <th class="col-day">{{ $d }}</th>
+                                            @endif
+                                        @endfor
+                                        <th class="col-total col-day">JML</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php $rowNo = 1; @endphp
+                                    @foreach($matrixData['matrix'] as $item => $data)
+                                        <tr>
+                                            <td class="sticky-col sticky-col-no">{{ $rowNo++ }}</td>
+                                            <td class="sticky-col sticky-col-item matrix-item-name">{{ $item }}</td>
+
+                                            <!-- Historical -->
+                                            @foreach($data['historical'] as $val)
+                                                <td class="col-hist">{{ $val }}</td>
+                                            @endforeach
+
+                                            <!-- Months -->
+                                            @foreach($data['months'] as $val)
+                                                <td class="col-month">{{ $val }}</td>
+                                            @endforeach
+                                            <td class="col-total col-month">{{ $data['total_fiscal'] }}</td>
+
+                                            <!-- Days -->
+                                            @foreach($data['days'] as $val)
+                                                @if($val !== null)
+                                                    <td class="col-day">{{ $val }}</td>
+                                                @endif
+                                            @endforeach
+                                            <td class="col-total col-day">{{ $data['total_month'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
 
-        // Tambahkan style untuk animasi
-        const style = document.createElement('style');
-        style.textContent = `
-                                            @keyframes slideIn {
-                                                from { transform: translateX(100%); opacity: 0; }
-                                                to { transform: translateX(0); opacity: 1; }
-                                            }
 
-                                            .filter-input[type="date"]::-webkit-calendar-picker-indicator {
-                                                cursor: pointer;
-                                                opacity: 0.6;
-                                            }
 
-                                            .filter-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-                                                opacity: 1;
-                                            }
+
+
+                    <div class="update-time fade-up">
+                        <span id="last-update">
+                            Data periode:
+                            @if(request()->hasAny(['start_date', 'end_date']))
+                                {{ date('d M Y', strtotime(request('start_date', date('Y-m-d', strtotime('-30 days'))))) }}
+                                -
+                                {{ date('d M Y', strtotime(request('end_date', date('Y-m-d')))) }}
+                            @else
+                                {{ now()->format('d M Y') }}
+                            @endif
+                            | Terakhir diperbarui: {{ now()->format('H:i:s') }}
+                        </span> <button onclick="refreshDashboard()" style="margin-left: 10px; padding: 2px 8px; font-size: 0.8rem; background: #3b82f6; color: white;
+                                                border: none; border-radius: 4px; cursor: pointer;">
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+            <script>
+                function updateMatrixYear(year) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('fiscal_year', year);
+                    // Reset month to first month of fiscal year or current month if applicable
+                    url.searchParams.delete('matrix_month');
+                    window.location.href = url.toString();
+                }
+
+                function updateMatrixMonth(index) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('matrix_month', index);
+                    window.location.href = url.toString();
+                }
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('visible');
+                            }
+                        });
+                    }, {
+                        threshold: 0.1,
+                        rootMargin: "0px 0px -60px 0px"
+                    });
+
+                    document.querySelectorAll('.fade-up').forEach(el => {
+                        observer.observe(el);
+                    });
+
+                    // Set tanggal akhir default ke hari ini
+                    const endDateInput = document.getElementById('end_date');
+                    const startDateInput = document.getElementById('start_date');
+
+                    if (!endDateInput.value) {
+                        endDateInput.value = new Date().toISOString().split('T')[0];
+                    }
+
+                    // Set tanggal awal default ke 30 hari sebelumnya
+                    if (!startDateInput.value) {
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                        startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+                    }
+
+                    // Validasi tanggal
+                    startDateInput.addEventListener('change', function () {
+                        if (endDateInput.value && new Date(this.value) > new Date(endDateInput.value)) {
+                            alert('Tanggal awal tidak boleh lebih besar dari tanggal akhir');
+                            this.value = endDateInput.value;
+                        }
+                    });
+
+                    endDateInput.addEventListener('change', function () {
+                        if (startDateInput.value && new Date(this.value) < new Date(startDateInput.value)) {
+                            alert('Tanggal akhir tidak boleh lebih kecil dari tanggal awal');
+                            this.value = startDateInput.value;
+                        }
+                    });
+
+                    // Auto-refresh setiap 5 menit
+                    setInterval(refreshDashboard, 300000);
+
+                    // Cek apakah hari ini ada loss day
+                    checkTodayLossDay();
+                });
+
+                function resetFilters() {
+                    const filterForm = document.getElementById('filterForm');
+                    if (filterForm) filterForm.reset();
+
+                    // Set nilai default
+                    const today = new Date().toISOString().split('T')[0];
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                    const endDateEl = document.getElementById('end_date');
+                    const startDateEl = document.getElementById('start_date');
+                    const sectionEl = document.getElementById('section');
+                    const statusEl = document.getElementById('status');
+
+                    if (endDateEl) endDateEl.value = today;
+                    if (startDateEl) startDateEl.value = thirtyDaysAgo.toISOString().split('T')[0];
+                    if (sectionEl) sectionEl.value = '';
+                    if (statusEl) statusEl.value = '';
+
+                    // Remove fiscal_year and matrix_month from URL on reset
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('fiscal_year');
+                    url.searchParams.delete('matrix_month');
+                    window.history.replaceState({}, '', url.toString());
+
+                    // Re-apply filter automatically after reset
+                    if (filterForm) filterForm.submit();
+                }
+
+                function refreshDashboard() {
+                    const lastUpdateEl = document.getElementById('last-update');
+                    const refreshBtn = lastUpdateEl.nextElementSibling;
+
+                    // Tampilkan loading
+                    refreshBtn.innerHTML = '<span class="loading-spinner"></span>Loading...';
+                    refreshBtn.disabled = true;
+
+                    // Ambil nilai filter
+                    const startDate = document.getElementById('start_date').value;
+                    const endDate = document.getElementById('end_date').value;
+                    const section = document.getElementById('section').value;
+                    const status = document.getElementById('status').value;
+
+                    // Build URL dengan parameter
+                    let url = '/she/dashboard/data';
+                    const params = new URLSearchParams();
+
+                    if (startDate) params.append('start_date', startDate);
+                    if (endDate) params.append('end_date', endDate);
+                    if (section) params.append('section', section);
+                    if (status) params.append('status', status);
+
+                    const queryString = params.toString();
+                    if (queryString) {
+                        url += '?' + queryString;
+                    }
+
+                    console.log('Fetching from:', url);
+
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Response data:', data);
+                            if (data.success) {
+                                updateDashboardData(data.data);
+
+                                // Update timestamp
+                                const now = new Date();
+                                const startDateFormatted = startDate ? new Date(startDate).toLocaleDateString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                }) : 'Semua';
+
+                                const endDateFormatted = endDate ? new Date(endDate).toLocaleDateString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                }) : 'Semua';
+
+                                lastUpdateEl.innerHTML = `
+                                                                    Data periode: ${startDateFormatted} - ${endDateFormatted}
+                                                                    | Terakhir diperbarui: ${now.toLocaleTimeString('id-ID')}
+                                                                `;
+
+                                // Cek loss day
+                                checkTodayLossDay();
+                            } else {
+                                throw new Error(data.message || 'Unknown error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error refreshing dashboard:', error);
+                            lastUpdateEl.innerHTML += ` <span style="color: #dc2626;">(Error: ${error.message})</span>`;
+                        })
+                        .finally(() => {
+                            refreshBtn.innerHTML = 'Refresh';
+                            refreshBtn.disabled = false;
+                        });
+                }
+
+                function updateDashboardData(data) {
+                    console.log('Updating dashboard with data:', data);
+
+                    // Update total safety days
+                    const totalDaysEl = document.getElementById('total-safety-days');
+                    if (totalDaysEl) {
+                        totalDaysEl.textContent = data.total_safety_days || 0;
+                    }
+
+                    const totalCard = document.getElementById('total-safety-card');
+                    if (totalCard) {
+                        if (data.total_safety_days == 0) {
+                            totalCard.classList.add('today-warning');
+                            const cardLabel = totalCard.querySelector('.card-body .card-label');
+                            if (cardLabel) {
+                                cardLabel.textContent = 'Hari ini ada loss day';
+                            }
+                        } else {
+                            totalCard.classList.remove('today-warning');
+                            const cardLabel = totalCard.querySelector('.card-body .card-label');
+                            if (cardLabel) {
+                                cardLabel.textContent = `Streak: ${data.current_streak_days || 0} hari`;
+                            }
+                        }
+
+                        // Update reset info
+                        const header = totalCard.querySelector('.card-header');
+                        if (header) {
+                            let resetBadge = header.querySelector('.reset-badge');
+                            let resetInfo = header.querySelector('.reset-info');
+
+                            if (data.last_reset_date && data.last_reset_date !== 'No reset yet') {
+                                if (!resetBadge) {
+                                    resetBadge = document.createElement('span');
+                                    resetBadge.className = 'reset-badge';
+                                    resetBadge.textContent = 'RESET';
+                                    header.appendChild(resetBadge);
+                                }
+
+                                if (!resetInfo) {
+                                    resetInfo = document.createElement('small');
+                                    resetInfo.className = 'reset-info';
+                                    header.appendChild(resetInfo);
+                                }
+                                resetInfo.textContent = `Terakhir: ${data.last_reset_date}`;
+                            } else {
+                                if (resetBadge) resetBadge.remove();
+                                if (resetInfo) resetInfo.remove();
+                            }
+                        }
+                    }
+
+                    // Update incident counts - Mapping antara key JSON dan ID HTML
+                    if (data.incident_counts) {
+                        const categoryMapping = {
+                            'Work Accident (Loss day)': 'card-work-accident-loss-day',
+                            'Work Accident (Light)': 'card-work-accident-light',
+                            'Traffic Accident': 'card-traffic-accident',
+                            'Fire Accident': 'card-fire-accident',
+                            'Forklift Accident': 'card-forklift-accident',
+                            'Molten Spill Incident': 'card-molten-spill-incident',
+                            'Property Damage Incident': 'card-property-damage-incident'
+                        };
+
+                        Object.keys(data.incident_counts).forEach(category => {
+                            const cardId = categoryMapping[category];
+                            if (!cardId) {
+                                console.warn('No mapping found for category:', category);
+                                return;
+                            }
+
+                            const card = document.getElementById(cardId);
+                            if (card) {
+                                const count = data.incident_counts[category];
+                                const countEl = card.querySelector('.incident-count');
+
+                                if (countEl) {
+                                    countEl.textContent = count;
+                                }
+
+                                // Update card styling
+                                if (count > 0) {
+                                    card.classList.add('has-incident');
+                                    card.classList.remove('no-incident');
+                                } else {
+                                    card.classList.add('no-incident');
+                                    card.classList.remove('has-incident');
+                                }
+                            } else {
+                                console.warn('Card not found for ID:', cardId);
+                            }
+                        });
+                    }
+                }
+
+
+                function checkTodayLossDay() {
+
+                    // Ambil elemen tanggal reset
+                    const resetInfo = document.getElementById('last-reset-date');
+
+                    // Format tanggal hari ini (Indonesia)
+                    const today = new Date();
+                    const todayString = today.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+
+                    // Hapus notifikasi lama
+                    const oldNotif = document.querySelector('.loss-day-notification');
+                    if (oldNotif) oldNotif.remove();
+
+                    // Jika ADA reset info
+                    if (resetInfo) {
+
+                        const resetText = resetInfo.innerText.replace('Terakhir:', '').trim();
+
+                        // 🔴 JIKA RESET = HARI INI
+                        if (resetText === todayString) {
+                            showRedAlert();
+                            return;
+                        }
+                    }
+
+                    // 🟢 JIKA BUKAN HARI INI
+                    showGreenAlert();
+                }
+
+                function showRedAlert() {
+                    const notif = document.createElement('div');
+                    notif.className = 'loss-day-notification';
+                    notif.style.cssText = `
+                                            position: fixed;
+                                            top: 70px;
+                                            right: 20px;
+                                            background: #dc2626;
+                                            color: white;
+                                            padding: 14px 18px;
+                                            border-radius: 8px;
+                                            box-shadow: 0 4px 12px rgba(220,38,38,0.3);
+                                            z-index: 1000;
+                                            animation: slideIn 0.3s ease-out;
                                         `;
-        document.head.appendChild(style);
+                    notif.innerHTML = `
+                                            <strong>⚠️ PERINGATAN!</strong><br>
+                                            Terdapat Work Accident (Loss day) <b>hari ini</b>.<br>
+                                            Total Safety Work Day akan direset besok.
+                                            <button onclick="this.parentElement.remove()"
+                                                style="position:absolute;top:6px;right:8px;background:none;border:none;color:white;font-size:16px;cursor:pointer;">
+                                                ×
+                                            </button>
+                                        `;
+                    document.body.appendChild(notif);
 
-        function exportMatrixToExcel() {
-            const startDate = document.getElementById('start_date').value;
-            const endDate = document.getElementById('end_date').value;
-            const section = document.getElementById('section').value;
-            const status = document.getElementById('status').value;
+                    setTimeout(() => notif.remove(), 10000);
+                }
 
-            let url = "{{ route('she.dashboard.exportMatrix') }}";
-            const params = new URLSearchParams();
+                function showGreenAlert() {
+                    const notif = document.createElement('div');
+                    notif.className = 'loss-day-notification';
+                    notif.style.cssText = `
+                                            position: fixed;
+                                            top: 70px;
+                                            right: 20px;
+                                            background: #16a34a;
+                                            color: white;
+                                            padding: 12px 16px;
+                                            border-radius: 8px;
+                                            box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+                                            z-index: 1000;
+                                        `;
+                    notif.innerHTML = `
+                                            <strong>✅ BAGUS!</strong><br>
+                                            Hari ini tidak ada Accident.
+                                        `;
+                    document.body.appendChild(notif);
 
-            if (startDate) params.append('start_date', startDate);
-            if (endDate) params.append('end_date', endDate);
-            if (section) params.append('section', section);
-            if (status) params.append('status', status);
+                    setTimeout(() => notif.remove(), 5000);
+                }
 
-            const queryString = params.toString();
-            if (queryString) {
-                url += '?' + queryString;
-            }
 
-            window.location.href = url;
-        }
-    </script>
+                // Tambahkan style untuk animasi
+                const style = document.createElement('style');
+                style.textContent = `
+                                                    @keyframes slideIn {
+                                                        from { transform: translateX(100%); opacity: 0; }
+                                                        to { transform: translateX(0); opacity: 1; }
+                                                    }
+
+                                                    .filter-input[type="date"]::-webkit-calendar-picker-indicator {
+                                                        cursor: pointer;
+                                                        opacity: 0.6;
+                                                    }
+
+                                                    .filter-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+                                                        opacity: 1;
+                                                    }
+                                                `;
+                document.head.appendChild(style);
+
+                function exportMatrixToExcel() {
+                    const startDate = document.getElementById('start_date')?.value || '';
+                    const endDate = document.getElementById('end_date')?.value || '';
+                    const section = document.getElementById('section')?.value || '';
+                    const status = document.getElementById('status')?.value || '';
+                    const fiscalYear = document.getElementById('matrix-year-select')?.value || '';
+                    const matrixMonth = document.getElementById('matrix-month-select')?.value || '';
+
+                    let url = "{{ route('she.dashboard.exportMatrix') }}";
+                    const params = new URLSearchParams();
+                    if (startDate) params.append('start_date', startDate);
+                    if (endDate) params.append('end_date', endDate);
+                    if (section) params.append('section', section);
+                    if (status) params.append('status', status);
+                    if (fiscalYear) params.append('fiscal_year', fiscalYear);
+                    if (matrixMonth) params.append('matrix_month', matrixMonth);
+
+                    const queryString = params.toString();
+                    window.location.href = url + (queryString ? '?' + queryString : '');
+                }
+            </script>
 
 @endsection
